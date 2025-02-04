@@ -1,0 +1,31 @@
+name: Deploy Nyx Frontend  Agent    to the Dev environment
+run-name:  Nyx Frontend   Agent Deployment to Dev environment
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout Code
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Deploy via SSH
+      - name: Deploy Code to Server
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+            GH_PERSONAL_ACCESS_TOKEN: ${{secrets.GH_REPO_TOKEN}}
+        
+            
+        with:
+          host: ${{ vars.DEV_SERVER_SSH_HOST_IP }}
+          envs: GH_PERSONAL_ACCESS_TOKEN
+          username: ${{ vars.DEV_SERVER_SSH_USER }}
+          key: ${{ secrets.DEV_SERVER_SSH_PRIVATE_KEY }}
+          debug: true
+          script_path:  scripts/deploy.sh
+          

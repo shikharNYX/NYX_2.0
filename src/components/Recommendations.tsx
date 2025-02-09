@@ -6,6 +6,8 @@ import {
   LayoutTemplateIcon,
   SlidersHorizontal
 } from "lucide-react";
+import { useTheme } from 'next-themes';
+import { cn } from "@/lib/utils";
 
 type RecommendationType = 'budget' | 'demographics' | 'content';
 
@@ -63,21 +65,38 @@ const typeConfig = {
 };
 
 export function Recommendations() {
+  const { theme } = useTheme();
   const handleApply = (id: number) => {
     // TODO: Implement recommendation application logic
     console.log(`Applying recommendation ${id}`);
   };
 
   return (
-    <Card className="bg-[#1A0B2E]/80 border-[#6D28D9]/20 h-full">
+    <Card className={cn(
+      "border",
+      theme === 'dark'
+        ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+        : "bg-white border-gray-200"
+    )}>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-5 w-5 text-purple-400" />
-          <CardTitle className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+          <SlidersHorizontal className={cn(
+            "h-5 w-5",
+            theme === 'dark' ? "text-purple-400" : "text-purple-600"
+          )} />
+          <CardTitle className={cn(
+            "text-lg font-semibold",
+            theme === 'dark'
+              ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+              : "text-gray-800"
+          )}>
             AI Recommendations
           </CardTitle>
         </div>
-        <CardDescription className="text-purple-300/80 text-sm">
+        <CardDescription className={cn(
+          "text-sm",
+          theme === 'dark' ? "text-purple-300/80" : "text-gray-500"
+        )}>
           Smart suggestions to improve performance
         </CardDescription>
       </CardHeader>
@@ -89,21 +108,41 @@ export function Recommendations() {
           return (
             <div
               key={rec.id}
-              className="p-3 rounded-lg bg-[#2D1B69]/30 border border-[#6D28D9]/20 hover:bg-[#2D1B69]/40 transition-all duration-200"
+              className={cn(
+                "p-3 rounded-lg border transition-all duration-200",
+                theme === 'dark'
+                  ? "bg-[#2D1B69]/30 border-[#6D28D9]/20 hover:bg-[#2D1B69]/40"
+                  : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+              )}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${config.bgGradient}`}>
+                <div className={cn(
+                  "p-1.5 rounded-lg",
+                  theme === 'dark' ? `bg-gradient-to-br ${config.bgGradient}` : "bg-white"
+                )}>
                   <Icon className={`h-4 w-4 ${config.iconColor}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-purple-200 truncate">{rec.title}</h3>
-                  <p className="text-xs text-purple-300/80 truncate">{rec.description}</p>
-                  <p className="text-xs text-emerald-400 mt-0.5">{rec.impact}</p>
+                  <h3 className={cn(
+                    "text-sm font-medium truncate",
+                    theme === 'dark' ? "text-purple-200" : "text-gray-800"
+                  )}>{rec.title}</h3>
+                  <p className={cn(
+                    "text-xs truncate",
+                    theme === 'dark' ? "text-purple-300/80" : "text-gray-500"
+                  )}>{rec.description}</p>
+                  <p className="text-xs text-emerald-600 mt-0.5">{rec.impact}</p>
                 </div>
                 <Button
-                  onClick={() => handleApply(rec.id)}
                   size="sm"
-                  className={`bg-gradient-to-r ${config.gradient} hover:opacity-90 text-white px-3 h-7 text-xs`}
+                  variant="outline"
+                  className={cn(
+                    "text-xs",
+                    theme === 'dark'
+                      ? "border-[#6D28D9]/20 hover:bg-[#2D1B69]/50 text-purple-200"
+                      : "border-gray-200 hover:bg-gray-100 text-gray-700"
+                  )}
+                  onClick={() => handleApply(rec.id)}
                 >
                   Apply
                 </Button>

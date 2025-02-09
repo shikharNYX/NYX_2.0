@@ -16,6 +16,8 @@ import { MetricCard } from "@/components/MetricCard";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { PlatformSpendChart } from "@/components/PlatformSpendChart";
 import { TopCampaignsTable } from "@/components/TopCampaignsTable";
+import { useTheme } from 'next-themes';
+import cn from 'classnames';
 
 const performanceData = [
   { name: 'Jan', spend: 12000, ctr: 2.4, conversions: 450 },
@@ -81,6 +83,7 @@ const metricColors = {
 
 export default function Dashboard() {
   const [selectedMetrics, setSelectedMetrics] = useState(['spend', 'ctr', 'conversions']);
+  const { theme } = useTheme();
 
   const toggleMetric = (metric: string) => {
     setSelectedMetrics(prev => {
@@ -94,15 +97,28 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]">
+    <div className={cn(
+      "p-4 min-h-screen",
+      theme === 'dark'
+        ? "bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]"
+        : "bg-gradient-to-b from-gray-50 via-white to-gray-50"
+    )}>
       <div className="max-w-[1600px] mx-auto space-y-6">
         {/* Headline Section */}
         <div className="space-y-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+            <h2 className={cn(
+              "text-2xl font-semibold",
+              theme === 'dark'
+                ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+                : "text-gray-800"
+            )}>
               Campaign Dashboard
             </h2>
-            <p className="text-purple-300/80 text-sm mt-1">Overview of your campaign performance and insights</p>
+            <p className={cn(
+              "text-sm mt-1",
+              theme === 'dark' ? "text-purple-300/80" : "text-gray-500"
+            )}>Overview of your campaign performance and insights</p>
           </div>
 
           {/* Performance Cards */}
@@ -110,26 +126,46 @@ export default function Dashboard() {
             {performanceMetrics.map((metric, index) => {
               const Icon = metric.icon;
               return (
-                <Card key={index} className="bg-[#1A0B2E]/80 border-[#6D28D9]/20">
+                <Card key={index} className={cn(
+                  "border",
+                  theme === 'dark'
+                    ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+                    : "bg-white border-gray-200"
+                )}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <span className="text-xs text-purple-300/80">{metric.label}</span>
+                        <span className={cn(
+                          "text-xs",
+                          theme === 'dark' ? "text-purple-300/80" : "text-gray-500"
+                        )}>{metric.label}</span>
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-fuchsia-300">
+                          <span className={cn(
+                            "text-xl font-bold",
+                            theme === 'dark'
+                              ? "bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-fuchsia-300"
+                              : "text-gray-800"
+                          )}>
                             {metric.value}
                           </span>
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                          <span className={cn(
+                            "inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium",
                             metric.change >= 0 
-                              ? 'bg-emerald-500/10 text-emerald-400' 
-                              : 'bg-rose-500/10 text-rose-400'
-                          }`}>
+                              ? theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
+                              : theme === 'dark' ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-100 text-rose-600'
+                          )}>
                             {metric.change >= 0 ? '↑' : '↓'} {Math.abs(metric.change)}%
                           </span>
                         </div>
                       </div>
-                      <div className={`p-2 rounded-lg bg-gradient-to-br ${metric.color} bg-opacity-10`}>
-                        <Icon className="h-4 w-4 text-white" />
+                      <div className={cn(
+                        "p-2 rounded-lg",
+                        theme === 'dark' ? `bg-gradient-to-br ${metric.color} bg-opacity-10` : "bg-gray-100"
+                      )}>
+                        <Icon className={cn(
+                          "h-4 w-4",
+                          theme === 'dark' ? "text-white" : "text-gray-600"
+                        )} />
                       </div>
                     </div>
                   </CardContent>
@@ -141,13 +177,33 @@ export default function Dashboard() {
           {/* Chart and Recommendations */}
           <div className="grid grid-cols-5 gap-6">
             {/* Chart */}
-            <Card className="col-span-3 bg-[#1A0B2E]/80 border-[#6D28D9]/20 h-full">
+            <Card className={cn(
+              "col-span-3 border",
+              theme === 'dark'
+                ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+                : "bg-white border-gray-200"
+            )}>
               <CardContent className="p-6">
                 <div className="flex justify-end mb-4">
                   <div className="flex gap-2">
-                    <button className="px-3 py-1.5 text-sm rounded-lg bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] text-white hover:from-[#5B21B6] hover:to-[#4338CA] transition-all duration-200">Daily</button>
-                    <button className="px-3 py-1.5 text-sm rounded-lg bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50 transition-all duration-200">Weekly</button>
-                    <button className="px-3 py-1.5 text-sm rounded-lg bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50 transition-all duration-200">Monthly</button>
+                    <button className={cn(
+                      "px-3 py-1.5 text-sm rounded-lg transition-all duration-200",
+                      theme === 'dark'
+                        ? "bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] text-white hover:from-[#5B21B6] hover:to-[#4338CA]"
+                        : "bg-purple-600 text-white hover:bg-purple-700"
+                    )}>Daily</button>
+                    <button className={cn(
+                      "px-3 py-1.5 text-sm rounded-lg transition-all duration-200",
+                      theme === 'dark'
+                        ? "bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    )}>Weekly</button>
+                    <button className={cn(
+                      "px-3 py-1.5 text-sm rounded-lg transition-all duration-200",
+                      theme === 'dark'
+                        ? "bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    )}>Monthly</button>
                   </div>
                 </div>
 
@@ -157,31 +213,31 @@ export default function Dashboard() {
                       {gradientDefs}
                       <CartesianGrid 
                         strokeDasharray="3 3" 
-                        stroke="#6D28D9" 
+                        stroke={theme === 'dark' ? "#6D28D9" : "#E5E7EB"} 
                         vertical={false} 
                         opacity={0.1} 
                       />
                       <XAxis 
                         dataKey="name" 
-                        axisLine={{ stroke: '#6D28D9' }}
-                        tickLine={{ stroke: '#6D28D9' }}
-                        tick={{ fill: '#E9D5FF', fontSize: 12 }}
+                        axisLine={{ stroke: theme === 'dark' ? '#6D28D9' : '#E5E7EB' }}
+                        tickLine={{ stroke: theme === 'dark' ? '#6D28D9' : '#E5E7EB' }}
+                        tick={{ fill: theme === 'dark' ? '#E9D5FF' : '#4B5563', fontSize: 12 }}
                       />
                       <YAxis 
-                        axisLine={{ stroke: '#6D28D9' }}
-                        tickLine={{ stroke: '#6D28D9' }}
-                        tick={{ fill: '#E9D5FF', fontSize: 12 }}
+                        axisLine={{ stroke: theme === 'dark' ? '#6D28D9' : '#E5E7EB' }}
+                        tickLine={{ stroke: theme === 'dark' ? '#6D28D9' : '#E5E7EB' }}
+                        tick={{ fill: theme === 'dark' ? '#E9D5FF' : '#4B5563', fontSize: 12 }}
                       />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'rgba(45, 27, 105, 0.9)',
+                          backgroundColor: theme === 'dark' ? 'rgba(45, 27, 105, 0.9)' : 'rgba(255, 255, 255, 0.9)',
                           backdropFilter: 'blur(8px)',
-                          border: '1px solid rgba(109, 40, 217, 0.2)',
+                          border: theme === 'dark' ? '1px solid rgba(109, 40, 217, 0.2)' : '1px solid rgba(229, 231, 235, 1)',
                           borderRadius: '12px',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                         }}
-                        labelStyle={{ color: '#E9D5FF' }}
-                        itemStyle={{ color: '#E9D5FF' }}
+                        labelStyle={{ color: theme === 'dark' ? '#E9D5FF' : '#4B5563' }}
+                        itemStyle={{ color: theme === 'dark' ? '#E9D5FF' : '#4B5563' }}
                       />
                       <Legend 
                         verticalAlign="bottom"
@@ -192,11 +248,16 @@ export default function Dashboard() {
                               <div
                                 key={String(entry.dataKey)}
                                 onClick={() => toggleMetric(String(entry.dataKey))}
-                                className={`relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 ${
+                                className={cn(
+                                  "relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200",
                                   selectedMetrics.includes(String(entry.dataKey))
-                                    ? 'bg-[#2D1B69]/50 text-white'
-                                    : 'text-purple-300/60 hover:text-purple-300'
-                                }`}
+                                    ? theme === 'dark'
+                                      ? "bg-[#2D1B69]/50 text-white"
+                                      : "bg-gray-100 text-gray-800"
+                                    : theme === 'dark'
+                                      ? "text-purple-300/60 hover:text-purple-300"
+                                      : "text-gray-400 hover:text-gray-600"
+                                )}
                               >
                                 {!selectedMetrics.includes(String(entry.dataKey)) && (
                                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

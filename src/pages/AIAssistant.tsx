@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Bot, Send, LineChart, Database, Sparkles, Users2, TrendingUp, BarChart2, PieChart } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, defs, linearGradient, stop } from 'recharts';
+import { useTheme } from 'next-themes';
+import { cn } from "@/lib/utils";
 
 // Mock data for demonstration
 const mockCTRImpactData = [
@@ -28,6 +30,8 @@ export default function AIAssistant() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const { theme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,20 +73,41 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] p-4 max-w-6xl mx-auto">
+    <div className={cn(
+      "flex flex-col h-[calc(100vh-2rem)] p-4 max-w-6xl mx-auto",
+      theme === 'dark'
+        ? "bg-[#0F0720]"
+        : "bg-white"
+    )}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-[#2D1B69]/30">
-          <Bot className="h-6 w-6 text-purple-400" />
+        <div className={cn(
+          "p-2 rounded-lg",
+          theme === 'dark' ? "bg-[#2D1B69]/30" : "bg-purple-100"
+        )}>
+          <Bot className={cn(
+            "h-6 w-6",
+            theme === 'dark' ? "text-purple-400" : "text-purple-600"
+          )} />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold text-purple-200">AI Campaign Assistant</h1>
-          <p className="text-purple-300/80">Your personal AI-powered campaign analyst</p>
+          <h1 className={cn(
+            "text-2xl font-semibold",
+            theme === 'dark' ? "text-purple-200" : "text-gray-900"
+          )}>AI Campaign Assistant</h1>
+          <p className={cn(
+            theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+          )}>Your personal AI-powered campaign analyst</p>
         </div>
       </div>
 
       {/* Chat Area */}
-      <Card className="flex-1 bg-[#1A0B2E]/80 border-[#6D28D9]/20 mb-4 overflow-hidden h-[calc(100vh-11rem)]">
+      <Card className={cn(
+        "flex-1 mb-4 overflow-hidden h-[calc(100vh-11rem)] border transition-colors",
+        theme === 'dark'
+          ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+          : "bg-white border-gray-200"
+      )}>
         <CardContent className="p-4 h-full flex flex-col overflow-y-auto custom-scrollbar">
           <style jsx>{`
             .custom-scrollbar::-webkit-scrollbar {
@@ -90,24 +115,32 @@ export default function AIAssistant() {
               height: 8px;
             }
             .custom-scrollbar::-webkit-scrollbar-track {
-              background: rgba(109, 40, 217, 0.1);
+              background: ${theme === 'dark' ? 'rgba(109, 40, 217, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
               border-radius: 4px;
             }
             .custom-scrollbar::-webkit-scrollbar-thumb {
-              background: rgba(109, 40, 217, 0.5);
+              background: ${theme === 'dark' ? 'rgba(109, 40, 217, 0.5)' : 'rgba(0, 0, 0, 0.2)'};
               border-radius: 4px;
             }
             .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-              background: rgba(109, 40, 217, 0.7);
+              background: ${theme === 'dark' ? 'rgba(109, 40, 217, 0.7)' : 'rgba(0, 0, 0, 0.3)'};
             }
           `}</style>
           
           {messages.length === 0 && (
             <div className="flex-1 flex items-center justify-center text-center p-8">
               <div className="space-y-4 w-full max-w-[1400px] mx-auto">
-                <Bot className="h-12 w-12 text-purple-400 mx-auto" />
-                <h2 className="text-xl font-semibold text-purple-200">How can I help you analyze your campaigns?</h2>
-                <p className="text-purple-300/80">
+                <Bot className={cn(
+                  "h-12 w-12 mx-auto",
+                  theme === 'dark' ? "text-purple-400" : "text-purple-600"
+                )} />
+                <h2 className={cn(
+                  "text-xl font-semibold",
+                  theme === 'dark' ? "text-purple-200" : "text-gray-900"
+                )}>How can I help you analyze your campaigns?</h2>
+                <p className={cn(
+                  theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+                )}>
                   Ask me anything about your campaign performance, metrics, or trends. I'll analyze the data and provide insights with visualizations.
                 </p>
                 <div className="flex flex-col md:flex-row gap-4 mt-8">
@@ -116,24 +149,28 @@ export default function AIAssistant() {
                     title="Demographics"
                     description="What demographics are giving most performance for my campaign?"
                     onClick={() => handleExampleClick("What demographics are giving most performance for my campaign?")}
+                    theme={theme}
                   />
                   <ExampleCard
                     icon={TrendingUp}
                     title="Ad Spend"
                     description="What would be effects of increasing ad spend by daily 15% on my campaigns?"
                     onClick={() => handleExampleClick("What would be effects of increasing ad spend by daily 15% on my campaigns?")}
+                    theme={theme}
                   />
                   <ExampleCard
                     icon={BarChart2}
                     title="ROAS"
                     description="List my top performing campaigns with respect to ROAS."
                     onClick={() => handleExampleClick("List my top performing campaigns with respect to ROAS.")}
+                    theme={theme}
                   />
                   <ExampleCard
                     icon={PieChart}
                     title="Budget Split"
                     description="What should be my ideal budget distribution?"
                     onClick={() => handleExampleClick("What should be my ideal budget distribution?")}
+                    theme={theme}
                   />
                 </div>
               </div>
@@ -146,53 +183,63 @@ export default function AIAssistant() {
               className={`mb-4 ${message.type === 'user' ? 'ml-auto max-w-xl' : 'mr-auto max-w-2xl'}`}
             >
               {message.type === 'user' ? (
-                <div className="bg-[#2D1B69] text-purple-200 p-3 rounded-lg">
+                <div className={cn(
+                  "p-3 rounded-lg",
+                  theme === 'dark'
+                    ? "bg-[#2D1B69] text-purple-200"
+                    : "bg-purple-100 text-gray-900"
+                )}>
                   {message.content}
                 </div>
               ) : (
                 <div className="space-y-4">
                   {message.loading ? (
-                    <LoadingMessage />
+                    <LoadingMessage theme={theme} />
                   ) : (
                     <>
-                      <div className="bg-[#2D1B69]/50 text-purple-200 p-4 rounded-lg">
+                      <div className={cn(
+                        "p-4 rounded-lg",
+                        theme === 'dark'
+                          ? "bg-[#2D1B69]/50 text-purple-200"
+                          : "bg-purple-50 text-gray-900"
+                      )}>
                         {message.content}
                         {message.chartData && (
-                          <div className="mt-4 h-[300px] bg-[#1A0B2E] p-4 rounded-lg">
+                          <div className={cn(
+                            "mt-4 h-[300px] p-4 rounded-lg",
+                            theme === 'dark' ? "bg-[#1A0B2E]" : "bg-white"
+                          )}>
                             <ResponsiveContainer width="100%" height="100%">
                               <RechartsLineChart data={message.chartData}>
                                 <defs>
                                   <linearGradient id="currentGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.3}/>
-                                    <stop offset="100%" stopColor="#4F46E5" stopOpacity={0.1}/>
+                                    <stop offset="0%" stopColor={theme === 'dark' ? "#4F46E5" : "#6366F1"} stopOpacity={0.3}/>
+                                    <stop offset="100%" stopColor={theme === 'dark' ? "#4F46E5" : "#6366F1"} stopOpacity={0.1}/>
                                   </linearGradient>
                                   <linearGradient id="projectedGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#818CF8" stopOpacity={0.3}/>
-                                    <stop offset="100%" stopColor="#818CF8" stopOpacity={0.1}/>
+                                    <stop offset="0%" stopColor={theme === 'dark' ? "#818CF8" : "#818CF8"} stopOpacity={0.3}/>
+                                    <stop offset="100%" stopColor={theme === 'dark' ? "#818CF8" : "#818CF8"} stopOpacity={0.1}/>
                                   </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#6D28D9" opacity={0.1} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? "#6D28D9" : "#E5E7EB"} opacity={0.1} />
                                 <XAxis 
                                   dataKey="date" 
-                                  stroke="#9CA3AF" 
+                                  stroke={theme === 'dark' ? "#9CA3AF" : "#6B7280"}
                                   fontSize={12}
                                   tickFormatter={(value) => new Date(value).toLocaleDateString()}
                                 />
                                 <YAxis 
-                                  stroke="#9CA3AF" 
+                                  stroke={theme === 'dark' ? "#9CA3AF" : "#6B7280"}
                                   fontSize={12}
                                   tickFormatter={(value) => `${value}%`}
-                                  label={{ value: 'CTR', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
+                                  label={{ value: 'CTR', angle: -90, position: 'insideLeft', fill: theme === 'dark' ? "#9CA3AF" : "#6B7280" }}
                                 />
                                 <Tooltip 
                                   contentStyle={{ 
-                                    backgroundColor: '#2D1B69',
-                                    border: '1px solid rgba(109, 40, 217, 0.2)',
-                                    borderRadius: '8px'
+                                    backgroundColor: theme === 'dark' ? '#2D1B69' : '#FFFFFF',
+                                    border: theme === 'dark' ? '1px solid rgba(109, 40, 217, 0.2)' : '1px solid #E5E7EB',
+                                    color: theme === 'dark' ? '#E9D5FF' : '#374151'
                                   }}
-                                  itemStyle={{ color: '#E9D5FF' }}
-                                  labelStyle={{ color: '#E9D5FF' }}
-                                  formatter={(value: number) => [`${value}%`, 'CTR']}
                                 />
                                 <Legend />
                                 <Area
@@ -200,9 +247,9 @@ export default function AIAssistant() {
                                   dataKey="currentCTR"
                                   fill="url(#currentGradient)"
                                   fillOpacity={1}
-                                  stroke="#4F46E5"
+                                  stroke={theme === 'dark' ? "#4F46E5" : "#6366F1"}
                                   strokeWidth={2}
-                                  dot={{ fill: '#4F46E5', r: 4 }}
+                                  dot={{ fill: theme === 'dark' ? "#4F46E5" : "#6366F1", r: 4 }}
                                   name="Current"
                                 />
                                 <Area
@@ -210,35 +257,28 @@ export default function AIAssistant() {
                                   dataKey="projectedCTR"
                                   fill="url(#projectedGradient)"
                                   fillOpacity={1}
-                                  stroke="#818CF8"
+                                  stroke={theme === 'dark' ? "#818CF8" : "#818CF8"}
                                   strokeWidth={2}
                                   strokeDasharray="5 5"
-                                  dot={{ fill: '#818CF8', r: 4 }}
+                                  dot={{ fill: theme === 'dark' ? "#818CF8" : "#818CF8", r: 4 }}
                                   name="Projected"
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="currentCTR"
-                                  stroke="#4F46E5"
-                                  strokeWidth={2}
-                                  dot={{ fill: '#4F46E5', r: 4 }}
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="projectedCTR"
-                                  stroke="#818CF8"
-                                  strokeWidth={2}
-                                  strokeDasharray="5 5"
-                                  dot={{ fill: '#818CF8', r: 4 }}
                                 />
                               </RechartsLineChart>
                             </ResponsiveContainer>
                           </div>
                         )}
                         {message.explanation && (
-                          <div className="mt-4 p-3 bg-[#2D1B69]/30 rounded-lg text-sm">
+                          <div className={cn(
+                            "mt-4 p-3 rounded-lg text-sm",
+                            theme === 'dark'
+                              ? "bg-[#2D1B69]/30"
+                              : "bg-purple-50"
+                          )}>
                             <div className="flex items-center gap-2 mb-2">
-                              <Sparkles className="h-4 w-4 text-purple-400" />
+                              <Sparkles className={cn(
+                                "h-4 w-4",
+                                theme === 'dark' ? "text-purple-400" : "text-purple-600"
+                              )} />
                               <span className="font-medium">Analysis</span>
                             </div>
                             {message.explanation}
@@ -255,19 +295,34 @@ export default function AIAssistant() {
       </Card>
 
       {/* Input Area */}
-      <Card className="bg-[#1A0B2E]/80 border-[#6D28D9]/20">
+      <Card className={cn(
+        "border transition-colors",
+        theme === 'dark'
+          ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+          : "bg-white border-gray-200"
+      )}>
         <CardContent className="p-4">
           <form onSubmit={handleSubmit} className="flex gap-3">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about your campaign performance..."
-              className="flex-1 bg-[#2D1B69]/30 border-[#6D28D9]/20 text-purple-200 placeholder:text-purple-300/50"
+              className={cn(
+                "flex-1 border transition-colors",
+                theme === 'dark'
+                  ? "bg-[#2D1B69]/30 border-[#6D28D9]/20 text-purple-200 placeholder:text-purple-300/50"
+                  : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-500"
+              )}
             />
             <Button 
               type="submit" 
               disabled={loading || !input.trim()}
-              className="bg-[#6D28D9] hover:bg-[#5B21B6] text-white"
+              className={cn(
+                "text-white transition-colors",
+                theme === 'dark'
+                  ? "bg-[#6D28D9] hover:bg-[#5B21B6]"
+                  : "bg-purple-600 hover:bg-purple-700"
+              )}
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -278,35 +333,69 @@ export default function AIAssistant() {
   );
 }
 
-function LoadingMessage() {
+function LoadingMessage({ theme }: { theme?: string }) {
   return (
-    <div className="bg-[#2D1B69]/50 text-purple-200 p-4 rounded-lg flex items-center gap-3">
+    <div className={cn(
+      "p-4 rounded-lg flex items-center gap-3",
+      theme === 'dark'
+        ? "bg-[#2D1B69]/50 text-purple-200"
+        : "bg-purple-50 text-gray-900"
+    )}>
       <div className="flex gap-1">
-        <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.3s]" />
-        <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.15s]" />
-        <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" />
+        <div className={cn(
+          "w-2 h-2 rounded-full animate-bounce [animation-delay:-0.3s]",
+          theme === 'dark' ? "bg-purple-400" : "bg-purple-600"
+        )} />
+        <div className={cn(
+          "w-2 h-2 rounded-full animate-bounce [animation-delay:-0.15s]",
+          theme === 'dark' ? "bg-purple-400" : "bg-purple-600"
+        )} />
+        <div className={cn(
+          "w-2 h-2 rounded-full animate-bounce",
+          theme === 'dark' ? "bg-purple-400" : "bg-purple-600"
+        )} />
       </div>
-      <span className="text-purple-300/80">Analyzing your campaign data...</span>
+      <span className={cn(
+        theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+      )}>Analyzing your campaign data...</span>
     </div>
   );
 }
 
-function ExampleCard({ icon: Icon, title, description, onClick }: { 
+function ExampleCard({ icon: Icon, title, description, onClick, theme }: { 
   icon: any; 
   title: string; 
   description: string;
   onClick: () => void;
+  theme?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className="bg-[#2D1B69]/30 p-4 rounded-lg border border-[#6D28D9]/20 text-left transition-all hover:bg-[#2D1B69]/50 hover:border-[#6D28D9]/40 h-full flex flex-col flex-1"
+      className={cn(
+        "p-4 rounded-lg border text-left transition-all h-full flex flex-col flex-1",
+        theme === 'dark'
+          ? "bg-[#2D1B69]/30 border-[#6D28D9]/20 hover:bg-[#2D1B69]/50 hover:border-[#6D28D9]/40"
+          : "bg-purple-50 border-purple-100 hover:bg-purple-100 hover:border-purple-200"
+      )}
     >
-      <div className="p-1.5 rounded-lg bg-[#2D1B69]/30 w-fit">
-        <Icon className="h-4 w-4 text-purple-400" />
+      <div className={cn(
+        "p-1.5 rounded-lg w-fit",
+        theme === 'dark' ? "bg-[#2D1B69]/30" : "bg-purple-100"
+      )}>
+        <Icon className={cn(
+          "h-4 w-4",
+          theme === 'dark' ? "text-purple-400" : "text-purple-600"
+        )} />
       </div>
-      <h3 className="font-medium text-purple-200 text-sm mt-3 mb-1.5">{title}</h3>
-      <p className="text-xs text-purple-300/80 leading-relaxed line-clamp-3">{description}</p>
+      <h3 className={cn(
+        "font-medium text-sm mt-3 mb-1.5",
+        theme === 'dark' ? "text-purple-200" : "text-gray-900"
+      )}>{title}</h3>
+      <p className={cn(
+        "text-xs leading-relaxed line-clamp-3",
+        theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+      )}>{description}</p>
     </button>
   );
 }

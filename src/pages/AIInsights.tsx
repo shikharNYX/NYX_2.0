@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { RecommendationProgress } from "@/components/RecommendationProgress";
+import { useTheme } from 'next-themes';
+import { cn } from "@/lib/utils";
 
 // Mock data for recommendations
 const recommendationTypes = [
@@ -102,6 +104,8 @@ export default function AIInsights() {
     }
   ];
 
+  const { theme } = useTheme();
+
   const handleApplyRecommendations = (campaignName: string) => {
     setApplyingToCampaign(campaignName);
     
@@ -122,15 +126,28 @@ export default function AIInsights() {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]">
+    <div className={cn(
+      "p-4 min-h-screen",
+      theme === 'dark'
+        ? "bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]"
+        : "bg-white"
+    )}>
       <div className="max-w-[1600px] mx-auto space-y-6">
         {/* Headline Section */}
         <div className="space-y-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+            <h2 className={cn(
+              "text-2xl font-semibold",
+              theme === 'dark'
+                ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+                : "text-gray-900"
+            )}>
               AI-Powered Insights
             </h2>
-            <p className="text-purple-300/80 text-sm mt-1">Smart recommendations and campaign optimization insights</p>
+            <p className={cn(
+              "text-sm mt-1",
+              theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+            )}>Smart recommendations and campaign optimization insights</p>
           </div>
 
           {/* Recommendation Type Cards */}
@@ -138,7 +155,12 @@ export default function AIInsights() {
             {recommendationTypes.map((rec) => {
               const Icon = rec.icon;
               return (
-                <Card key={rec.type} className="bg-[#1A0B2E]/80 border-[#6D28D9]/20">
+                <Card key={rec.type} className={cn(
+                  "border transition-colors",
+                  theme === 'dark'
+                    ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+                    : "bg-white border-gray-200 shadow-sm"
+                )}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
@@ -146,13 +168,22 @@ export default function AIInsights() {
                           <Icon className={`h-6 w-6 ${rec.color}`} />
                         </div>
                         <div>
-                          <h3 className="text-lg font-medium text-purple-200">{rec.type}</h3>
-                          <p className="text-sm text-purple-300/80">
+                          <h3 className={cn(
+                            "text-lg font-medium",
+                            theme === 'dark' ? "text-purple-200" : "text-gray-900"
+                          )}>{rec.type}</h3>
+                          <p className={cn(
+                            "text-sm",
+                            theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+                          )}>
                             {rec.count} campaign{rec.count !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-purple-300/60" />
+                      <ChevronRight className={cn(
+                        "h-5 w-5",
+                        theme === 'dark' ? "text-purple-300/60" : "text-gray-400"
+                      )} />
                     </div>
                   </CardContent>
                 </Card>
@@ -163,10 +194,18 @@ export default function AIInsights() {
           {/* Campaign Specific Recommendations */}
           <div className="space-y-4">
             {campaignRecommendations.map((campaign) => (
-              <Card key={campaign.campaignName} className="bg-[#1A0B2E]/80 border-[#6D28D9]/20">
+              <Card key={campaign.campaignName} className={cn(
+                "border transition-colors",
+                theme === 'dark'
+                  ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20"
+                  : "bg-white border-gray-200 shadow-sm"
+              )}>
                 <CardContent className="p-6">
                   {/* Campaign Name */}
-                  <h3 className="text-xl font-medium text-purple-200 mb-4">
+                  <h3 className={cn(
+                    "text-xl font-medium mb-4",
+                    theme === 'dark' ? "text-purple-200" : "text-gray-900"
+                  )}>
                     {campaign.campaignName}
                   </h3>
 
@@ -174,8 +213,13 @@ export default function AIInsights() {
                   <div className="space-y-4 mb-6">
                     {campaign.recommendations.map((rec, index) => (
                       <div key={index} className="flex items-start space-x-3">
-                        <div className="mt-1 h-2 w-2 rounded-full bg-purple-400" />
-                        <p className="text-purple-300/90">{rec}</p>
+                        <div className={cn(
+                          "mt-1 h-2 w-2 rounded-full",
+                          theme === 'dark' ? "bg-purple-400" : "bg-purple-600"
+                        )} />
+                        <p className={cn(
+                          theme === 'dark' ? "text-purple-300/90" : "text-gray-700"
+                        )}>{rec}</p>
                       </div>
                     ))}
                   </div>
@@ -183,15 +227,22 @@ export default function AIInsights() {
                   {/* Expected Metrics Improvement */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {Object.entries(campaign.metrics).map(([metric, improvement]) => (
-                      <div key={metric} className="bg-[#2D1B69]/50 p-3 rounded-lg">
-                        <p className="text-sm text-purple-300/80 uppercase">{metric}</p>
-                        <p className={`text-lg font-medium ${
-                          metric === 'cpc' || metric === 'cpm' 
-                            ? 'text-green-400' // negative values (cost reduction) in green
-                            : improvement.startsWith('+') 
-                              ? 'text-green-400' // positive values in green
-                              : 'text-red-400' // negative values in red
-                        }`}>
+                      <div key={metric} className={cn(
+                        "p-3 rounded-lg",
+                        theme === 'dark' ? "bg-[#2D1B69]/50" : "bg-gray-50"
+                      )}>
+                        <p className={cn(
+                          "text-sm uppercase",
+                          theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+                        )}>{metric}</p>
+                        <p className={cn(
+                          "text-lg font-medium",
+                          metric === 'cpc' || metric === 'cpm'
+                            ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                            : improvement.startsWith('+')
+                              ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                              : theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                        )}>
                           {improvement}
                         </p>
                       </div>
@@ -201,7 +252,12 @@ export default function AIInsights() {
                   {/* Apply Button */}
                   <div className="flex justify-end">
                     <Button 
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      className={cn(
+                        "text-white",
+                        theme === 'dark'
+                          ? "bg-purple-600 hover:bg-purple-700"
+                          : "bg-purple-600 hover:bg-purple-700"
+                      )}
                       onClick={() => handleApplyRecommendations(campaign.campaignName)}
                       disabled={applyingToCampaign !== null}
                     >
@@ -218,7 +274,10 @@ export default function AIInsights() {
           {applyingToCampaign && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
               <div className="w-full max-w-2xl">
-                <h2 className="text-2xl font-semibold text-purple-200 mb-4">
+                <h2 className={cn(
+                  "text-2xl font-semibold mb-4",
+                  theme === 'dark' ? "text-purple-200" : "text-gray-900"
+                )}>
                   Applying Recommendations to {applyingToCampaign}
                 </h2>
                 <RecommendationProgress

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/tooltip";
 import EditCampaignDialog from './EditCampaignDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTheme } from 'next-themes';
+import { cn } from "@/lib/utils";
 
 interface CampaignMetrics {
   adCost: number;
@@ -72,14 +74,27 @@ const CampaignItem = ({
   onEditCampaign,
   recommendations
 }: CampaignProps) => {
+  const { theme } = useTheme();
+
   const getStatusColor = (status: CampaignProps['status']) => {
-    switch (status) {
-      case 'active':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      case 'paused':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'completed':
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    if (theme === 'dark') {
+      switch (status) {
+        case 'active':
+          return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+        case 'paused':
+          return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        case 'completed':
+          return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      }
+    } else {
+      switch (status) {
+        case 'active':
+          return 'bg-purple-100 text-purple-700 border-purple-300';
+        case 'paused':
+          return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+        case 'completed':
+          return 'bg-gray-100 text-gray-700 border-gray-300';
+      }
     }
   };
 
@@ -174,16 +189,30 @@ const CampaignItem = ({
 
   return (
     <>
-      <Card className="mb-2 border border-purple-500/20 bg-indigo-950/30 hover:border-purple-500/30 transition-colors">
+      <Card className={cn(
+        "mb-2 border transition-colors",
+        theme === 'dark' 
+          ? "border-purple-500/20 bg-indigo-950/30 hover:border-purple-500/30"
+          : "border-gray-200 bg-white hover:border-purple-300 shadow-sm"
+      )}>
         <div
-          className={`p-4 cursor-pointer ${isExpanded ? 'border-b border-purple-500/20' : ''}`}
+          className={cn(
+            "p-4 cursor-pointer",
+            isExpanded && (theme === 'dark' ? "border-b border-purple-500/20" : "border-b border-gray-200")
+          )}
           onClick={onToggleExpand}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div>
-                <div className="text-2xl font-semibold text-white mb-1">{name}</div>
-                <div className="text-sm text-purple-300">Campaign ID: #{id}</div>
+                <div className={cn(
+                  "text-2xl font-semibold mb-1",
+                  theme === 'dark' ? "text-white" : "text-gray-900"
+                )}>{name}</div>
+                <div className={cn(
+                  "text-sm",
+                  theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                )}>Campaign ID: #{id}</div>
               </div>
               <Badge className={`${getStatusColor(status)} text-sm px-3 py-1 font-medium`}>
                 {status}
@@ -192,250 +221,154 @@ const CampaignItem = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleEditClick}
-                className="p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 transition-colors"
+                className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  theme === 'dark'
+                    ? "bg-purple-500/10 hover:bg-purple-500/20"
+                    : "bg-purple-50 hover:bg-purple-100"
+                )}
               >
-                <Edit className="h-5 w-5 text-purple-300" />
+                <Edit className={cn(
+                  "h-5 w-5",
+                  theme === 'dark' ? "text-purple-300" : "text-purple-600"
+                )} />
               </button>
               {isExpanded ? (
-                <ChevronUp className="h-6 w-6 text-purple-300" />
+                <ChevronUp className={cn(
+                  "h-6 w-6",
+                  theme === 'dark' ? "text-purple-300" : "text-purple-600"
+                )} />
               ) : (
-                <ChevronDown className="h-6 w-6 text-purple-300" />
+                <ChevronDown className={cn(
+                  "h-6 w-6",
+                  theme === 'dark' ? "text-purple-300" : "text-purple-600"
+                )} />
               )}
             </div>
           </div>
         </div>
 
         {isExpanded && (
-          <div className="p-4 pt-3">
-            <div className="mt-4 space-y-6">
-              {/* Campaign Details Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-100">Campaign Details</h3>
-                  <div className="flex items-center gap-3">
-                    <Select defaultValue="7d">
-                      <SelectTrigger className="h-8 w-[130px] bg-[#1A0B2E] border-purple-500/20">
-                        <SelectValue placeholder="Time Range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="7d">Last 7 days</SelectItem>
-                        <SelectItem value="30d">Last 30 days</SelectItem>
-                        <SelectItem value="90d">Last 90 days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select defaultValue="all">
-                      <SelectTrigger className="h-8 w-[130px] bg-[#1A0B2E] border-purple-500/20">
-                        <SelectValue placeholder="Platform" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Channels</SelectItem>
-                        <SelectItem value="google">Google Ads</SelectItem>
-                        <SelectItem value="meta">Meta Ads</SelectItem>
-                        <SelectItem value="linkedin">LinkedIn Ads</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+          <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              {metricCards.map((metric, index) => (
+                <Card key={index} className={cn(
+                  "border transition-colors",
+                  theme === 'dark'
+                    ? "bg-[#2D1B69]/30 border-purple-500/20"
+                    : "bg-white border-gray-200 shadow-sm"
+                )}>
+                  <CardContent className="p-4">
+                    <div className={cn(
+                      "text-sm font-medium mb-2",
+                      theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                    )}>
+                      {metric.title}
+                    </div>
+                    <div className={cn(
+                      "text-2xl font-semibold mb-1",
+                      theme === 'dark' ? "text-white" : "text-gray-900"
+                    )}>
+                      {metric.value}
+                    </div>
+                    <div className={cn(
+                      "text-sm",
+                      metric.change.startsWith('+')
+                        ? theme === 'dark' ? "text-green-400" : "text-green-600"
+                        : metric.change.startsWith('-')
+                        ? theme === 'dark' ? "text-red-400" : "text-red-600"
+                        : theme === 'dark' ? "text-gray-400" : "text-gray-600"
+                    )}>
+                      {metric.change} vs last period
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5 mb-2">
-                  {metricCards.map((metric, index) => (
-                    <Card key={index} className="border-purple-500/20 bg-[#1A0B2E] shadow-sm">
-                      <CardContent className="px-3 py-2">
-                        <div className="flex flex-row items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-purple-300/80">{metric.title}</span>
-                            <TooltipProvider>
-                              <UITooltip>
-                                <TooltipTrigger>
-                                  <Info className="h-3 w-3 text-purple-400/70" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="text-xs">Previous period: {
-                                    metric.title === 'CTR' 
-                                      ? formatMetricValue(
-                                          (safeMetrics.previousPeriod.clicks / safeMetrics.previousPeriod.impressions) * 100,
-                                          'percentage'
-                                        )
-                                      : metric.title === 'CPC'
-                                      ? formatMetricValue(
-                                          safeMetrics.previousPeriod.clicks > 0 
-                                            ? safeMetrics.previousPeriod.adCost / safeMetrics.previousPeriod.clicks 
-                                            : 0,
-                                          'currency'
-                                        )
-                                      : formatMetricValue(
-                                          safeMetrics.previousPeriod[metric.title === 'Ad Cost' ? 'adCost' : metric.title.toLowerCase()],
-                                          metric.title === 'Ad Cost' ? 'currency' : 'number'
-                                        )
-                                  }</p>
-                                </TooltipContent>
-                              </UITooltip>
-                            </TooltipProvider>
-                          </div>
-                          <div className={`text-xs font-medium ${metric.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                            {metric.change}
-                          </div>
-                        </div>
-                        <div className="text-base font-medium text-gray-100 mt-1.5">
-                          {metric.value}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* Charts Section */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Card className="border-purple-500/20 bg-[#1A0B2E]">
-                      <CardHeader className="p-3 pb-1">
-                        <CardTitle className="text-sm font-medium text-purple-100">Impressions vs. Clicks</CardTitle>
-                        <CardDescription className="text-xs text-purple-300/80">Track your campaign reach and engagement</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 pt-1">
-                        <div className="bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-2">
-                          <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={performanceData}>
-                                <defs>
-                                  <linearGradient id="impressionsGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#818CF8" />
-                                    <stop offset="100%" stopColor="#4F46E5" />
-                                  </linearGradient>
-                                  <linearGradient id="clicksGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#34D399" />
-                                    <stop offset="100%" stopColor="#059669" />
-                                  </linearGradient>
-                                </defs>
-                                <CartesianGrid 
-                                  strokeDasharray="3 3" 
-                                  stroke="#6D28D9" 
-                                  vertical={false} 
-                                  opacity={0.1} 
-                                />
-                                <XAxis 
-                                  dataKey="date" 
-                                  axisLine={{ stroke: '#6D28D9' }}
-                                  tickLine={{ stroke: '#6D28D9' }}
-                                  tick={{ fill: '#E9D5FF', fontSize: 12 }}
-                                />
-                                <YAxis 
-                                  axisLine={{ stroke: '#6D28D9' }}
-                                  tickLine={{ stroke: '#6D28D9' }}
-                                  tick={{ fill: '#E9D5FF', fontSize: 12 }}
-                                  domain={['auto', 'auto']}
-                                  padding={{ top: 20, bottom: 20 }}
-                                />
-                                <Tooltip
-                                  contentStyle={{ 
-                                    backgroundColor: 'rgba(45, 27, 105, 0.9)',
-                                    backdropFilter: 'blur(8px)',
-                                    border: '1px solid rgba(109, 40, 217, 0.2)',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                                  }}
-                                  labelStyle={{ color: '#E9D5FF' }}
-                                  itemStyle={{ color: '#E9D5FF' }}
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="impressions"
-                                  stroke="url(#impressionsGradient)"
-                                  strokeWidth={2}
-                                  dot={{ fill: '#818CF8', r: 4, strokeWidth: 2 }}
-                                  activeDot={{ r: 6, fill: '#E9D5FF', stroke: '#818CF8', strokeWidth: 2 }}
-                                  name="Impressions"
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="clicks"
-                                  stroke="url(#clicksGradient)"
-                                  strokeWidth={2}
-                                  dot={{ fill: '#34D399', r: 4, strokeWidth: 2 }}
-                                  activeDot={{ r: 6, fill: '#E9D5FF', stroke: '#34D399', strokeWidth: 2 }}
-                                  name="Clicks"
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-purple-500/20 bg-[#1A0B2E]">
-                      <CardHeader className="p-3 pb-1">
-                        <CardTitle className="text-sm font-medium text-purple-100">Cost per Conversion Trend</CardTitle>
-                        <CardDescription className="text-xs text-purple-300/80">Monitor your conversion costs over time</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 pt-1">
-                        <div className="bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-2">
-                          <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={performanceData}>
-                                <defs>
-                                  <linearGradient id="cpcGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#F472B6" />
-                                    <stop offset="100%" stopColor="#BE185D" />
-                                  </linearGradient>
-                                </defs>
-                                <CartesianGrid 
-                                  strokeDasharray="3 3" 
-                                  stroke="#6D28D9" 
-                                  vertical={false} 
-                                  opacity={0.1} 
-                                />
-                                <XAxis 
-                                  dataKey="date" 
-                                  axisLine={{ stroke: '#6D28D9' }}
-                                  tickLine={{ stroke: '#6D28D9' }}
-                                  tick={{ fill: '#E9D5FF', fontSize: 12 }}
-                                />
-                                <YAxis 
-                                  axisLine={{ stroke: '#6D28D9' }}
-                                  tickLine={{ stroke: '#6D28D9' }}
-                                  tick={{ fill: '#E9D5FF', fontSize: 12 }}
-                                  tickFormatter={(value) => `$${value}`}
-                                />
-                                <Tooltip
-                                  contentStyle={{ 
-                                    backgroundColor: 'rgba(45, 27, 105, 0.9)',
-                                    backdropFilter: 'blur(8px)',
-                                    border: '1px solid rgba(109, 40, 217, 0.2)',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                                  }}
-                                  labelStyle={{ color: '#E9D5FF' }}
-                                  itemStyle={{ color: '#E9D5FF' }}
-                                  formatter={(value) => [`$${value}`, 'Cost per Conversion']}
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="costPerConversion"
-                                  stroke="url(#cpcGradient)"
-                                  strokeWidth={2}
-                                  dot={{ fill: '#F472B6', r: 4, strokeWidth: 2 }}
-                                  activeDot={{ r: 6, fill: '#E9D5FF', stroke: '#F472B6', strokeWidth: 2 }}
-                                  name="Cost per Conversion"
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recommendations Section */}
-              <Card className="border-purple-500/20 bg-[#1A0B2E]">
-                <CardHeader className="p-3 pb-1">
-                  <CardTitle className="text-sm font-medium text-purple-100">Recommendations</CardTitle>
-                  <CardDescription className="text-xs text-purple-300/80">Get personalized suggestions</CardDescription>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Performance Chart */}
+              <Card className={cn(
+                "border transition-colors",
+                theme === 'dark'
+                  ? "bg-[#2D1B69]/30 border-purple-500/20"
+                  : "bg-white border-gray-200 shadow-sm"
+              )}>
+                <CardHeader>
+                  <CardTitle className={cn(
+                    "text-lg font-semibold",
+                    theme === 'dark' ? "text-white" : "text-gray-900"
+                  )}>Performance Metrics</CardTitle>
                 </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <RecommendationsPanel 
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={performanceData}>
+                        <defs>
+                          <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={theme === 'dark' ? "#6D28D9" : "#7C3AED"} stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor={theme === 'dark' ? "#6D28D9" : "#7C3AED"} stopOpacity={0.0}/>
+                          </linearGradient>
+                          <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={theme === 'dark' ? "#9333EA" : "#9333EA"} stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor={theme === 'dark' ? "#9333EA" : "#9333EA"} stopOpacity={0.0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis 
+                          dataKey="date" 
+                          stroke={theme === 'dark' ? "#6B7280" : "#9CA3AF"}
+                          tick={{ fill: theme === 'dark' ? "#9CA3AF" : "#4B5563" }}
+                        />
+                        <YAxis 
+                          stroke={theme === 'dark' ? "#6B7280" : "#9CA3AF"}
+                          tick={{ fill: theme === 'dark' ? "#9CA3AF" : "#4B5563" }}
+                        />
+                        <CartesianGrid 
+                          strokeDasharray="3 3" 
+                          stroke={theme === 'dark' ? "#374151" : "#E5E7EB"}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: theme === 'dark' ? "#1F2937" : "#FFFFFF",
+                            borderColor: theme === 'dark' ? "#374151" : "#E5E7EB",
+                            color: theme === 'dark' ? "#F3F4F6" : "#111827"
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="impressions"
+                          stroke={theme === 'dark' ? "#6D28D9" : "#7C3AED"}
+                          fillOpacity={1}
+                          fill="url(#colorImpressions)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="clicks"
+                          stroke={theme === 'dark' ? "#9333EA" : "#9333EA"}
+                          fillOpacity={1}
+                          fill="url(#colorClicks)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recommendations Panel */}
+              <Card className={cn(
+                "border transition-colors",
+                theme === 'dark'
+                  ? "bg-[#2D1B69]/30 border-purple-500/20"
+                  : "bg-white border-gray-200 shadow-sm"
+              )}>
+                <CardHeader>
+                  <CardTitle className={cn(
+                    "text-lg font-semibold",
+                    theme === 'dark' ? "text-white" : "text-gray-900"
+                  )}>Recommendations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <RecommendationsPanel
                     recommendations={recommendations}
                     onApplyRecommendation={onApplyRecommendation}
                   />

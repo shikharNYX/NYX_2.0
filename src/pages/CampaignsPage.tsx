@@ -1,17 +1,14 @@
 import React, { useReducer, useState } from "react";
 import CampaignItem from "../components/CampaignItem";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Search, Plus } from "lucide-react";
 import { useMediaQuery } from "../hooks/use-media-query";
 import { Recommendation } from "../components/RecommendationsPanel";
 import { Link, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 interface CampaignState {
   id: number;
@@ -266,6 +263,7 @@ const recommendationsMap = {
 const CampaignsPage: React.FC = () => {
   const [campaigns, dispatch] = useReducer(campaignReducer, initialCampaigns);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const { theme } = useTheme();
 
   const handleApplyRecommendation = (recommendation: Recommendation) => {
     const campaign = campaigns.find((c) => c.id === recommendation.campaignId);
@@ -327,15 +325,34 @@ const CampaignsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]">
+    <div
+      className={cn(
+        "p-4 min-h-screen",
+        theme === "dark"
+          ? "bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]"
+          : "bg-white"
+      )}
+    >
       <div className="max-w-[1600px] mx-auto space-y-6">
         {/* Headline Section */}
         <div className="space-y-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+            <h2
+              className={cn(
+                "text-2xl font-semibold",
+                theme === "dark"
+                  ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+                  : "text-gray-900"
+              )}
+            >
               Campaign Management
             </h2>
-            <p className="text-purple-300/80 text-sm mt-1">
+            <p
+              className={cn(
+                "text-sm mt-1",
+                theme === "dark" ? "text-purple-300/80" : "text-gray-600"
+              )}
+            >
               Manage and optimize your active campaigns
             </p>
           </div>
@@ -346,10 +363,20 @@ const CampaignsPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
                   <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-purple-500" />
+                    <Search
+                      className={cn(
+                        "absolute left-2.5 top-2.5 h-4 w-4",
+                        theme === "dark" ? "text-purple-500" : "text-gray-500"
+                      )}
+                    />
                     <Input
                       placeholder="Search campaigns..."
-                      className="pl-9 bg-[#1A0B2E] border-purple-500/20"
+                      className={cn(
+                        "pl-9",
+                        theme === "dark"
+                          ? "bg-[#1A0B2E] border-purple-500/20"
+                          : "bg-white border-gray-200"
+                      )}
                     />
                   </div>
                 </div>

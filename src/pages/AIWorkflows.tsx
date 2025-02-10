@@ -55,6 +55,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTheme } from 'next-themes';
 
 interface SubStep {
   name: string;
@@ -279,8 +280,84 @@ const processTypes = [
   { id: 'budget-optimization', name: 'Budget Optimization', icon: DollarSign }
 ];
 
+const getThemeClasses = (theme: string) => {
+  if (theme === 'light') {
+    return {
+      background: 'min-h-screen bg-gradient-to-b from-gray-50 via-gray-100 to-gray-50',
+      text: 'text-gray-900',
+      subText: 'text-gray-600',
+      card: 'bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow',
+      cardHeader: 'bg-gray-50 border-b border-gray-200',
+      cardTitle: 'text-gray-900 font-semibold text-lg',
+      cardDescription: 'text-gray-600 mt-1',
+      button: 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm',
+      secondaryButton: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm',
+      input: 'bg-white border-gray-300 focus:border-purple-500 text-gray-900 placeholder:text-gray-500',
+      textarea: 'w-full px-3 py-2 bg-white border border-gray-300 focus:border-purple-500 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 resize-none rounded-md',
+      select: 'bg-white border-gray-300 text-gray-900',
+      dialog: 'bg-white shadow-lg',
+      dialogHeader: 'bg-gray-50 border-b border-gray-200',
+      flowBackground: 'bg-gray-50',
+      nodeBackground: 'bg-white',
+      nodeBorder: 'border-gray-300',
+      nodeText: 'text-gray-900',
+      edgeStroke: '#4B5563',
+      controlsBackground: 'bg-white shadow-md border border-gray-200',
+      controlsButton: 'text-gray-700 hover:text-purple-600',
+      statusBadge: {
+        waiting: 'bg-gray-100 text-gray-700',
+        running: 'bg-blue-100 text-blue-700',
+        completed: 'bg-green-100 text-green-700',
+        error: 'bg-red-100 text-red-700'
+      },
+      heading: 'text-gray-900 font-semibold',
+      link: 'text-purple-600 hover:text-purple-700',
+      progressBar: 'bg-gray-200',
+      progressBarFill: 'bg-purple-600',
+      breadcrumb: 'text-gray-700 hover:text-purple-600 font-medium flex items-center',
+      breadcrumbIcon: 'text-gray-400'
+    };
+  }
+  return {
+    background: 'min-h-screen bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]',
+    text: 'text-purple-200',
+    subText: 'text-purple-300/70',
+    card: 'bg-[#1A0B2E] border border-purple-900 shadow-purple-900/20 hover:shadow-purple-900/30',
+    cardHeader: 'bg-transparent',
+    cardTitle: 'text-purple-200 font-semibold text-lg',
+    cardDescription: 'text-purple-300/70 mt-1',
+    button: 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-900/30',
+    secondaryButton: 'bg-purple-900/30 hover:bg-purple-900/50 text-purple-200',
+    input: 'bg-[#150923] border-purple-900 focus:border-purple-500 text-purple-200 placeholder:text-purple-400/50',
+    textarea: 'w-full px-3 py-2 bg-[#150923] border border-purple-900 focus:border-purple-500 text-purple-200 placeholder:text-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 resize-none rounded-md',
+    select: 'bg-[#150923] border-purple-900 text-purple-200',
+    dialog: 'bg-[#1A0B2E] shadow-purple-900/20',
+    dialogHeader: 'bg-[#150923] border-b border-purple-900/50',
+    flowBackground: 'bg-[#150923]',
+    nodeBackground: 'bg-[#1A0B2E]',
+    nodeBorder: 'border-purple-900',
+    nodeText: 'text-purple-200',
+    edgeStroke: '#9333ea',
+    controlsBackground: 'bg-[#150923] shadow-purple-900/20 border border-purple-900/50',
+    controlsButton: 'text-purple-200 hover:text-purple-400',
+    statusBadge: {
+      waiting: 'bg-purple-400/5 text-purple-400/50',
+      running: 'bg-purple-400/10 text-purple-400',
+      completed: 'bg-green-400/10 text-green-400',
+      error: 'bg-red-400/10 text-red-400'
+    },
+    heading: 'text-purple-200 font-semibold',
+    link: 'text-purple-400 hover:text-purple-300',
+    progressBar: 'bg-purple-900/50',
+    progressBarFill: 'bg-purple-500',
+    breadcrumb: 'text-purple-200 hover:text-purple-300 font-medium flex items-center',
+    breadcrumbIcon: 'text-purple-300/60'
+  };
+};
+
 const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [currentSteps, setCurrentSteps] = useState<WorkflowStep[]>(defaultSteps);
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(null);
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState<number | null>(null);
@@ -753,34 +830,40 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
   return (
     <>
-      <Card className="bg-[#1A0B2E] border-[#6D28D9]/20">
-        <CardHeader className="pb-4">
+      <Card className={getThemeClasses(theme).card}>
+        <CardHeader className={getThemeClasses(theme).cardHeader}>
           <div className="flex justify-between items-start mb-2">
             <div className="space-y-1">
-              <CardTitle>
+              <CardTitle className={getThemeClasses(theme).cardTitle}>
                 {workflow.name}
               </CardTitle>
-              <div className="text-sm text-purple-200/80">
+              <div className={getThemeClasses(theme).cardDescription}>
                 {workflow.description}
               </div>
             </div>
             {/* Metrics moved to top right, made smaller */}
             <div className="flex space-x-4 text-right">
               <div className="space-y-0.5">
-                <div className="text-xs font-medium text-purple-200/60">Active</div>
-                <div className="text-sm font-semibold text-purple-200">
+                <div className={getThemeClasses(theme).subText}>
+                  Active
+                </div>
+                <div className={`${getThemeClasses(theme).text} flex justify-center`}>
                   {workflow.activeInstances}
                 </div>
               </div>
               <div className="space-y-0.5">
-                <div className="text-xs font-medium text-purple-200/60">Success</div>
-                <div className="text-sm font-semibold text-purple-200">
+                <div className={getThemeClasses(theme).subText}>
+                  Success
+                </div>
+                <div className={`${getThemeClasses(theme).text} flex justify-center`}>
                   {workflow.successRate}%
                 </div>
               </div>
               <div className="space-y-0.5">
-                <div className="text-xs font-medium text-purple-200/60">Done</div>
-                <div className="text-sm font-semibold text-purple-200">
+                <div className={getThemeClasses(theme).subText}>
+                  Done
+                </div>
+                <div className={`${getThemeClasses(theme).text} flex justify-center`}>
                   {workflow.completedCount}
                 </div>
               </div>
@@ -793,12 +876,14 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Activity className="h-4 w-4 text-purple-400" />
-                <span className="text-sm font-medium text-purple-200">Workflow Diagram</span>
+                <span className={getThemeClasses(theme).text}>
+                  Workflow Diagram
+                </span>
               </div>
               <Button
                 size="sm"
                 variant="outline"
-                className="bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border-purple-500/20"
+                className={`${getThemeClasses(theme).buttonOutline} mt-5`}
                 onClick={runWorkflow}
                 disabled={isRunning || currentSteps.length === 0}
               >
@@ -950,7 +1035,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                 />
                 <Controls 
                   showInteractive={false}
-                  className="bg-[#2D1B69]/30 backdrop-blur-sm border-purple-500/20 text-purple-200" 
+                  className={getThemeClasses(theme).controlsBackground} 
                 />
                 {/* Add Step Button */}
                 <div className="absolute bottom-4 right-4 z-10">
@@ -970,18 +1055,22 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
             {isRunning && currentStepIndex !== null && currentSubStepIndex !== null && (
               <div className="space-y-2 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-purple-200">Current Progress</div>
-                  <div className="text-xs text-purple-400">Step {currentStepIndex + 1} of {currentSteps.length}</div>
+                  <div className={getThemeClasses(theme).text}>
+                    Current Progress
+                  </div>
+                  <div className={getThemeClasses(theme).subText}>
+                    Step {currentStepIndex + 1} of {currentSteps.length}
+                  </div>
                 </div>
                 <div className="p-4 rounded-lg bg-[#2D1B69]/30 border border-purple-500/20">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <RotateCw className="w-4 h-4 text-purple-400 animate-spin" />
                       <div>
-                        <div className="text-sm font-medium text-purple-200">
+                        <div className={getThemeClasses(theme).text}>
                           {currentSteps[currentStepIndex].name}
                         </div>
-                        <div className="text-xs text-purple-400 mt-1">
+                        <div className={getThemeClasses(theme).subText}>
                           {currentSteps[currentStepIndex].subSteps[currentSubStepIndex].name}
                         </div>
                       </div>
@@ -1037,7 +1126,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                               </div>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-normal text-purple-200/90 truncate leading-tight">{subStep.name}</p>
+                              <p className={getThemeClasses(theme).subText}>{subStep.name}</p>
                             </div>
                           </div>
                           <span className={`text-xs px-2.5 py-1 rounded-full flex-shrink-0 ml-4 font-medium ${
@@ -1057,11 +1146,13 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
             {/* Review Dialog */}
             <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-              <DialogContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-200 max-w-[90%] w-[90%]">
+              <DialogContent className={getThemeClasses(theme).dialog}>
                 <DialogHeader>
                   <div className="flex justify-between items-center">
                     <div>
-                      <DialogTitle className="text-xl font-semibold">Campaign Review</DialogTitle>
+                      <DialogTitle className={getThemeClasses(theme).heading}>
+                        Campaign Review
+                      </DialogTitle>
                     </div>
                   </div>
                 </DialogHeader>
@@ -1073,59 +1164,79 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                     <div className="space-y-5 bg-[#2D1B69]/10 rounded-lg p-5">
                       <div className="flex items-center space-x-2">
                         <Activity className="w-5 h-5 text-purple-400" />
-                        <h3 className="text-base font-medium text-purple-300">Campaign Configuration</h3>
+                        <h3 className={getThemeClasses(theme).heading}>
+                          Campaign Configuration
+                        </h3>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-5">
                         {/* Basic Info */}
                         <div className="space-y-2">
-                          <label className="text-sm text-purple-400">Campaign Name</label>
+                          <label className={getThemeClasses(theme).subText}>
+                            Campaign Name
+                          </label>
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-sm font-medium">{campaignConfig.name}</p>
+                            <p className={getThemeClasses(theme).text}>{campaignConfig.name}</p>
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-purple-400">Brand Persona</label>
+                          <label className={getThemeClasses(theme).subText}>
+                            Brand Persona
+                          </label>
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-sm font-medium">{campaignConfig.brandPersona}</p>
+                            <p className={getThemeClasses(theme).text}>{campaignConfig.brandPersona}</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Target Demographic */}
                       <div className="space-y-3">
-                        <label className="text-sm text-purple-400">Target Demographic</label>
+                        <label className={getThemeClasses(theme).subText}>
+                          Target Demographic
+                        </label>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-xs text-purple-400 mb-1">Age Range</p>
-                            <p className="text-sm font-medium">{campaignConfig.targetDemographic.ageRange.min} - {campaignConfig.targetDemographic.ageRange.max} years</p>
+                            <p className={getThemeClasses(theme).subText}>
+                              Age Range
+                            </p>
+                            <p className={getThemeClasses(theme).text}>{campaignConfig.targetDemographic.ageRange.min} - {campaignConfig.targetDemographic.ageRange.max} years</p>
                           </div>
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-xs text-purple-400 mb-1">Gender</p>
-                            <p className="text-sm font-medium capitalize">{campaignConfig.targetDemographic.gender.join(', ')}</p>
+                            <p className={getThemeClasses(theme).subText}>
+                              Gender
+                            </p>
+                            <p className={getThemeClasses(theme).text}>{campaignConfig.targetDemographic.gender.join(', ')}</p>
                           </div>
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-xs text-purple-400 mb-1">Locations</p>
-                            <p className="text-sm font-medium">{campaignConfig.targetDemographic.locations.join(', ')}</p>
+                            <p className={getThemeClasses(theme).subText}>
+                              Locations
+                            </p>
+                            <p className={getThemeClasses(theme).text}>{campaignConfig.targetDemographic.locations.join(', ')}</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Budget Distribution */}
                       <div className="space-y-3">
-                        <label className="text-sm text-purple-400">Budget Distribution</label>
+                        <label className={getThemeClasses(theme).subText}>
+                          Budget Distribution
+                        </label>
                         <div className="grid grid-cols-4 gap-4">
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-xs text-purple-400 mb-1">Total Daily Budget</p>
-                            <p className="text-sm font-medium">{campaignConfig.budget.currency} {campaignConfig.budget.total}</p>
+                            <p className={getThemeClasses(theme).subText}>
+                              Total Daily Budget
+                            </p>
+                            <p className={getThemeClasses(theme).text}>{campaignConfig.budget.currency} {campaignConfig.budget.total}</p>
                           </div>
                           {Object.entries(campaignConfig.adPlatforms).map(([platform, data]) => (
                             data.selected && (
                               <div key={platform} className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                                <p className="text-xs text-purple-400 mb-1 capitalize">{platform}</p>
-                                <p className="text-sm font-medium">
+                                <p className={getThemeClasses(theme).subText}>
+                                  {platform}
+                                </p>
+                                <p className={getThemeClasses(theme).text}>
                                   {data.budget}% 
-                                  <span className="text-purple-400 text-xs ml-1">
+                                  <span className={getThemeClasses(theme).subText}>
                                     ({campaignConfig.budget.currency} {(campaignConfig.budget.total * data.budget / 100).toFixed(2)})
                                   </span>
                                 </p>
@@ -1138,15 +1249,19 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                       {/* Campaign Duration */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm text-purple-400">Start Date</label>
+                          <label className={getThemeClasses(theme).subText}>
+                            Start Date
+                          </label>
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-sm font-medium">{new Date(campaignConfig.dates.start).toLocaleDateString()}</p>
+                            <p className={getThemeClasses(theme).text}>{new Date(campaignConfig.dates.start).toLocaleDateString()}</p>
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-purple-400">End Date</label>
+                          <label className={getThemeClasses(theme).subText}>
+                            End Date
+                          </label>
                           <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className="text-sm font-medium">{new Date(campaignConfig.dates.end).toLocaleDateString()}</p>
+                            <p className={getThemeClasses(theme).text}>{new Date(campaignConfig.dates.end).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </div>
@@ -1156,7 +1271,9 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                     <div className="space-y-5 bg-[#2D1B69]/10 rounded-lg p-5">
                       <div className="flex items-center space-x-2">
                         <Sparkles className="w-5 h-5 text-purple-400" />
-                        <h3 className="text-base font-medium text-purple-300">Creative Assets</h3>
+                        <h3 className={getThemeClasses(theme).heading}>
+                          Creative Assets
+                        </h3>
                       </div>
                       <div className="grid grid-cols-3 gap-5">
                         {creativeAssets.images.map((image, index) => (
@@ -1169,7 +1286,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                 <div className="absolute bottom-0 left-0 right-0 p-3">
-                                  <p className="text-xs text-center text-purple-200">
+                                  <p className={getThemeClasses(theme).subText}>
                                     Aspect Ratio: {image.aspectRatio}
                                   </p>
                                 </div>
@@ -1186,18 +1303,26 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                     <div className="flex-1 overflow-y-auto">
                       <div className="p-5 space-y-5">
                         <section>
-                          <h3 className="text-lg font-medium text-purple-50 mb-4">Ad Copy</h3>
+                          <h3 className={getThemeClasses(theme).heading}>
+                            Ad Copy
+                          </h3>
                           <div className="space-y-5">
                             {/* Headlines */}
                             <div className="space-y-3">
-                              <h4 className="text-sm font-medium text-purple-200">Headlines</h4>
+                              <h4 className={getThemeClasses(theme).subText}>
+                                Headlines
+                              </h4>
                               <div className="space-y-2">
                                 {generatedContent.headlines.map((headline, index) => (
                                   <div key={index} className="p-3 bg-[#2D1B69]/30 rounded-lg">
-                                    <p className="text-sm font-medium">{headline}</p>
+                                    <p className={getThemeClasses(theme).text}>{headline}</p>
                                     <div className="mt-1 flex items-center justify-between">
-                                      <span className="text-xs text-purple-200/70">Headline {index + 1}</span>
-                                      <span className="text-xs text-purple-200/70">{headline.length} chars</span>
+                                      <span className={getThemeClasses(theme).subText}>
+                                        Headline {index + 1}
+                                      </span>
+                                      <span className={getThemeClasses(theme).subText}>
+                                        {headline.length} chars
+                                      </span>
                                     </div>
                                   </div>
                                 ))}
@@ -1206,14 +1331,20 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
                             {/* Descriptions */}
                             <div className="space-y-3">
-                              <h4 className="text-sm font-medium text-purple-200">Descriptions</h4>
+                              <h4 className={getThemeClasses(theme).subText}>
+                                Descriptions
+                              </h4>
                               <div className="space-y-2">
                                 {generatedContent.descriptions.map((desc, index) => (
                                   <div key={index} className="p-3 bg-[#2D1B69]/30 rounded-lg">
-                                    <p className="text-sm font-medium">{desc}</p>
+                                    <p className={getThemeClasses(theme).text}>{desc}</p>
                                     <div className="mt-1 flex items-center justify-between">
-                                      <span className="text-xs text-purple-200/70">Description {index + 1}</span>
-                                      <span className="text-xs text-purple-200/70">{desc.length} chars</span>
+                                      <span className={getThemeClasses(theme).subText}>
+                                        Description {index + 1}
+                                      </span>
+                                      <span className={getThemeClasses(theme).subText}>
+                                        {desc.length} chars
+                                      </span>
                                     </div>
                                   </div>
                                 ))}
@@ -1222,14 +1353,20 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
                             {/* Captions */}
                             <div className="space-y-3">
-                              <h4 className="text-sm font-medium text-purple-200">Captions</h4>
+                              <h4 className={getThemeClasses(theme).subText}>
+                                Captions
+                              </h4>
                               <div className="space-y-2">
                                 {generatedContent.captions.map((caption, index) => (
                                   <div key={index} className="p-3 bg-[#2D1B69]/30 rounded-lg">
-                                    <p className="text-sm font-medium">{caption}</p>
+                                    <p className={getThemeClasses(theme).text}>{caption}</p>
                                     <div className="mt-1 flex items-center justify-between">
-                                      <span className="text-xs text-purple-200/70">Caption {index + 1}</span>
-                                      <span className="text-xs text-purple-200/70">{caption.length} chars</span>
+                                      <span className={getThemeClasses(theme).subText}>
+                                        Caption {index + 1}
+                                      </span>
+                                      <span className={getThemeClasses(theme).subText}>
+                                        {caption.length} chars
+                                      </span>
                                     </div>
                                   </div>
                                 ))}
@@ -1247,14 +1384,16 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                     <Button
                       variant="outline"
                       onClick={() => setIsReviewDialogOpen(false)}
-                      className="bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20"
+                      className={getThemeClasses(theme).buttonOutline}
                     >
                       Cancel Workflow
                     </Button>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-3 bg-purple-500/10 px-4 py-2 rounded-lg">
                         <CircularTimer timeLeft={timeLeft} />
-                        <span className="text-sm font-medium text-purple-300">Auto-publishing</span>
+                        <span className={getThemeClasses(theme).subText}>
+                          Auto-publishing
+                        </span>
                       </div>
                       <Button
                         onClick={() => {
@@ -1273,10 +1412,10 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
             {/* Step Selection Dialog */}
             <Dialog open={isAddStepDialogOpen} onOpenChange={setIsAddStepDialogOpen}>
-              <DialogContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-50 max-w-md">
+              <DialogContent className={getThemeClasses(theme).dialog}>
                 <div className="border-b border-purple-500/20 px-4 py-3">
                   <DialogHeader>
-                    <DialogTitle className="text-lg font-semibold">
+                    <DialogTitle className={getThemeClasses(theme).heading}>
                       Add New Step
                     </DialogTitle>
                   </DialogHeader>
@@ -1296,8 +1435,12 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                       >
                         {React.createElement(stepType.icon, { className: "w-5 h-5 text-purple-400" })}
                         <div className="text-left">
-                          <div className="font-medium">{stepType.name}</div>
-                          <div className="text-sm text-purple-300/70">{stepType.description}</div>
+                          <div className={getThemeClasses(theme).text}>
+                            {stepType.name}
+                          </div>
+                          <div className={getThemeClasses(theme).subText}>
+                            {stepType.description}
+                          </div>
                         </div>
                       </button>
                     ))}
@@ -1309,7 +1452,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                     <Button
                       variant="outline"
                       onClick={() => setIsAddStepDialogOpen(false)}
-                      className="bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20"
+                      className={getThemeClasses(theme).buttonOutline}
                     >
                       Cancel
                     </Button>
@@ -1325,6 +1468,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 };
 
 export default function AIWorkflows() {
+  const { theme } = useTheme();
   const [workflows] = useState<Workflow[]>(workflowTemplates);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
   const [isCustomWorkflowDialogOpen, setIsCustomWorkflowDialogOpen] = useState(false);
@@ -1363,7 +1507,7 @@ export default function AIWorkflows() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]">
+    <div className={getThemeClasses(theme).background}>
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}
@@ -1372,16 +1516,16 @@ export default function AIWorkflows() {
               <li className="inline-flex items-center">
                 <Link 
                   to="/" 
-                  className="inline-flex items-center text-sm text-purple-300/80 hover:text-purple-200"
+                  className={getThemeClasses(theme).breadcrumb}
                 >
-                  <Home className="w-4 h-4 mr-2" />
+                  <Home className={cn("w-4 h-4 mr-2", getThemeClasses(theme).breadcrumbIcon)} />
                   Home
                 </Link>
               </li>
               <li aria-current="page">
                 <div className="flex items-center">
-                  <ChevronRight className="w-4 h-4 text-purple-300/60" />
-                  <span className="ml-1 text-sm text-purple-200 md:ml-2">
+                  <ChevronRight className={getThemeClasses(theme).breadcrumbIcon} />
+                  <span className={getThemeClasses(theme).breadcrumb}>
                     AI Workflows
                   </span>
                 </div>
@@ -1391,15 +1535,17 @@ export default function AIWorkflows() {
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 mb-2">
+            <h1 className={getThemeClasses(theme).heading}>
               AI Workflows
             </h1>
             <div className="flex justify-between items-center">
-              <p className="text-purple-300/80">Manage and monitor your AI-powered workflows</p>
+              <p className={getThemeClasses(theme).subText}>
+                Manage and monitor your AI-powered workflows
+              </p>
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  className="bg-[#3D2B79]/40 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20 backdrop-blur-sm"
+                  className={getThemeClasses(theme).button}
                   onClick={() => setIsCustomWorkflowDialogOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -1407,7 +1553,7 @@ export default function AIWorkflows() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="bg-[#3D2B79]/40 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20 backdrop-blur-sm"
+                  className={getThemeClasses(theme).button}
                   onClick={() => setIsGoalDialogOpen(true)}
                 >
                   <HelpCircle className="w-4 h-4 mr-2" />
@@ -1419,23 +1565,27 @@ export default function AIWorkflows() {
 
           {/* Business Goal Dialog */}
           <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
-            <DialogContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-50 max-w-md">
+            <DialogContent className={getThemeClasses(theme).dialog}>
               <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">Tell us about your workflow goal</DialogTitle>
+                <DialogTitle className={getThemeClasses(theme).heading}>
+                  Tell us about your workflow goal
+                </DialogTitle>
               </DialogHeader>
 
               <div className="mt-4 space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-purple-200/70">Business Goal</label>
+                  <label className={getThemeClasses(theme).subText}>
+                    Business Goal
+                  </label>
                   <textarea
                     value={businessGoal}
                     onChange={(e) => setBusinessGoal(e.target.value)}
                     placeholder="E.g., Increase brand awareness, drive website traffic, generate leads..."
-                    className="w-full h-32 px-3 py-2 bg-[#2D1B69]/30 border border-purple-500/20 rounded-lg text-purple-50 placeholder:text-purple-200/30 focus:outline-none focus:ring-2 focus:ring-purple-500/30 resize-none"
+                    className={cn("h-32", getThemeClasses(theme).textarea)}
                   />
                 </div>
 
-                <div className="text-sm text-purple-200/50">
+                <div className={getThemeClasses(theme).subText}>
                   <p>Some examples of business goals:</p>
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>Launch a new product line to existing customers</li>
@@ -1451,7 +1601,7 @@ export default function AIWorkflows() {
                   <Button
                     variant="outline"
                     onClick={() => setIsGoalDialogOpen(false)}
-                    className="bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20"
+                    className={getThemeClasses(theme).buttonOutline}
                   >
                     Cancel
                   </Button>
@@ -1471,9 +1621,9 @@ export default function AIWorkflows() {
 
           {/* Custom Workflow Dialog */}
           <Dialog open={isCustomWorkflowDialogOpen} onOpenChange={setIsCustomWorkflowDialogOpen}>
-            <DialogContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-50 max-w-4xl h-[80vh] overflow-y-auto">
+            <DialogContent className={getThemeClasses(theme).dialog}>
               <DialogHeader className="space-y-2 pb-4 border-b border-purple-500/20">
-                <DialogTitle className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-400">
+                <DialogTitle className={getThemeClasses(theme).heading}>
                   Create Custom Workflow
                 </DialogTitle>
               </DialogHeader>
@@ -1483,19 +1633,19 @@ export default function AIWorkflows() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium text-purple-200">
+                      <Label htmlFor="name" className={getThemeClasses(theme).subText}>
                         Workflow Name
                       </Label>
                       <Input
                         id="name"
                         placeholder="Enter workflow name"
-                        className="bg-[#2D1B69]/40 border-purple-500/20 text-purple-50 placeholder:text-purple-200/30 focus:ring-2 focus:ring-purple-500/30"
+                        className="bg-[#150923] border-purple-900 focus:border-purple-500 text-purple-200 placeholder:text-purple-200/30 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
                         value={customWorkflowName}
                         onChange={(e) => setCustomWorkflowName(e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="process" className="text-sm font-medium text-purple-200">
+                      <Label htmlFor="process" className={getThemeClasses(theme).subText}>
                         Select Process
                       </Label>
                       <Select
@@ -1527,10 +1677,10 @@ export default function AIWorkflows() {
                           }
                         }}
                       >
-                        <SelectTrigger className="bg-[#2D1B69]/40 border-purple-500/20 text-purple-50">
+                        <SelectTrigger className={getThemeClasses(theme).select}>
                           <SelectValue placeholder="Select a process type" />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#1A0B2E] border-purple-500/20">
+                        <SelectContent className={getThemeClasses(theme).selectContent}>
                           {stepTypes.map((type) => (
                             <SelectItem 
                               key={type.id} 
@@ -1601,7 +1751,7 @@ export default function AIWorkflows() {
                       size={1}
                       style={{ opacity: 0.2 }}
                     />
-                    <Controls className="bg-[#2D1B69]/40 border border-purple-500/20 rounded-lg" />
+                    <Controls className={getThemeClasses(theme).controlsBackground} />
                   </ReactFlow>
                 </div>
               </div>
@@ -1611,7 +1761,7 @@ export default function AIWorkflows() {
                   <Button
                     variant="outline"
                     onClick={() => setIsCustomWorkflowDialogOpen(false)}
-                    className="bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20"
+                    className={getThemeClasses(theme).buttonOutline}
                   >
                     Cancel
                   </Button>

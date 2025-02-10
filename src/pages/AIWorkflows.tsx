@@ -1,39 +1,51 @@
-import { useState, useCallback, useEffect } from 'react';
 import * as React from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, { 
   Node,
   Edge,
-  Background, 
+  Background,
   Controls,
-  applyNodeChanges,
-  applyEdgeChanges,
+  MiniMap,
+  NodeChange,
+  EdgeChange,
+  Connection,
   addEdge,
-  Position,
+  updateEdge,
   MarkerType,
+  Position,
   BackgroundVariant,
-  Panel
+  Panel,
+  applyNodeChanges,
+  applyEdgeChanges
 } from 'reactflow';
-import CustomNode from '@/components/CustomNode';
 import { 
-  Activity, 
-  Play, 
-  RotateCw, 
-  Plus,
-  HelpCircle,
-  FileDown,
+  Activity,
+  AlertCircle,
+  ArrowRight,
   Calendar,
-  LineChart,
-  Clock,
-  Settings,
-  MessageSquare,
-  Target,
-  Share2,
-  Home,
+  Check,
   ChevronRight,
-  Sparkles,
+  Clock,
+  DollarSign,
+  FileDown,
+  HelpCircle,
+  Home,
+  Info,
+  LineChart,
   Mail,
-  DollarSign
+  MessageSquare,
+  Pause,
+  Play,
+  Plus,
+  RotateCw,
+  Settings,
+  Share2,
+  Sparkles,
+  Target,
+  Users,
+  type LucideIcon 
 } from 'lucide-react';
+import CustomNode from '@/components/CustomNode';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -81,6 +93,39 @@ interface Workflow {
 
 interface WorkflowCardProps {
   workflow: Workflow;
+}
+
+interface CreativeAsset {
+  url: string;
+  aspectRatio: string;
+  type: 'image' | 'video';
+}
+
+interface GeneratedContent {
+  headlines: string[];
+  descriptions: string[];
+  captions: string[];
+}
+
+interface CampaignConfig {
+  name: string;
+  brandPersona: string;
+  targetDemographic: {
+    ageRange: { min: number; max: number };
+    gender: string[];
+    locations: string[];
+  };
+  adPlatforms: {
+    [key: string]: { selected: boolean; budget: number };
+  };
+  budget: {
+    total: number;
+    currency: string;
+  };
+  dates: {
+    start: string;
+    end: string;
+  };
 }
 
 const workflowTemplates: Workflow[] = [
@@ -228,57 +273,85 @@ const defaultSteps: WorkflowStep[] = [
   }
 ];
 
-const stepTypes = [
+interface StepType {
+  id: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  subSteps: { name: string; status: WorkflowStep['status'] }[];
+  type: string;
+}
+
+const stepTypes: StepType[] = [
   {
     id: 'content-creation',
     name: 'Content Creation',
     description: 'Create content for your campaign',
-    icon: MessageSquare
+    icon: MessageSquare,
+    subSteps: [
+      { name: 'Creating social media posts', status: 'pending' },
+      { name: 'Designing social media graphics', status: 'pending' },
+      { name: 'Writing social media captions', status: 'pending' }
+    ],
+    type: 'content-creation'
   },
   {
     id: 'target-audience',
     name: 'Target Audience',
     description: 'Define your target audience',
-    icon: Target
+    icon: Target,
+    subSteps: [
+      { name: 'Defining target audience', status: 'pending' },
+      { name: 'Configuring target demographic', status: 'pending' },
+      { name: 'Selecting relevant ad platforms', status: 'pending' }
+    ],
+    type: 'target-audience'
   },
   {
     id: 'social-schedule',
-    name: 'Social Media Schedule',
+    name: 'Social Schedule',
     description: 'Create posting schedule',
-    icon: Calendar
+    icon: Calendar,
+    subSteps: [
+      { name: 'Scheduling social media posts', status: 'pending' },
+      { name: 'Publishing social media posts', status: 'pending' }
+    ],
+    type: 'social-schedule'
   },
   {
     id: 'performance-tracking',
     name: 'Performance Tracking',
     description: 'Set up tracking metrics',
-    icon: LineChart
+    icon: LineChart,
+    subSteps: [
+      { name: 'Setting up tracking metrics', status: 'pending' },
+      { name: 'Monitoring campaign performance', status: 'pending' }
+    ],
+    type: 'performance-tracking'
   },
   {
     id: 'distribution',
     name: 'Distribution',
     description: 'Configure content distribution',
-    icon: Share2
+    icon: Share2,
+    subSteps: [
+      { name: 'Configuring content distribution', status: 'pending' },
+      { name: 'Publishing content', status: 'pending' }
+    ],
+    type: 'distribution'
   },
   {
     id: 'settings',
     name: 'Settings',
     description: 'Configure workflow settings',
-    icon: Settings
+    icon: Settings,
+    subSteps: [
+      { name: 'Configuring workflow settings', status: 'pending' },
+      { name: 'Saving changes', status: 'pending' }
+    ],
+    type: 'settings'
   }
-];
-
-const processTypes = [
-  { id: 'content-creation', name: 'Content Creation', icon: MessageSquare },
-  { id: 'target-audience', name: 'Target Audience', icon: Target },
-  { id: 'social-schedule', name: 'Social Media Schedule', icon: Calendar },
-  { id: 'performance-tracking', name: 'Performance Tracking', icon: LineChart },
-  { id: 'distribution', name: 'Distribution', icon: Share2 },
-  { id: 'settings', name: 'Settings', icon: Settings },
-  { id: 'campaign-planning', name: 'Campaign Planning', icon: Activity },
-  { id: 'email-marketing', name: 'Email Marketing', icon: Mail },
-  { id: 'analytics', name: 'Analytics & Reporting', icon: LineChart },
-  { id: 'budget-optimization', name: 'Budget Optimization', icon: DollarSign }
-];
+] as const;
 
 const getThemeClasses = (theme: string) => {
   if (theme === 'light') {
@@ -291,7 +364,7 @@ const getThemeClasses = (theme: string) => {
       cardTitle: 'text-gray-900 font-semibold text-lg',
       cardDescription: 'text-gray-600 mt-1',
       button: 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm',
-      secondaryButton: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm',
+      buttonOutline: 'bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20',
       input: 'bg-white border-gray-300 focus:border-purple-500 text-gray-900 placeholder:text-gray-500',
       textarea: 'w-full px-3 py-2 bg-white border border-gray-300 focus:border-purple-500 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 resize-none rounded-md',
       select: 'bg-white border-gray-300 text-gray-900',
@@ -315,7 +388,9 @@ const getThemeClasses = (theme: string) => {
       progressBar: 'bg-gray-200',
       progressBarFill: 'bg-purple-600',
       breadcrumb: 'text-gray-700 hover:text-purple-600 font-medium flex items-center',
-      breadcrumbIcon: 'text-gray-400'
+      breadcrumbIcon: 'text-gray-400',
+      selectContent: 'bg-white border-gray-200',
+      selectItem: 'bg-gray-50 hover:bg-gray-100 text-gray-900 border border-gray-200'
     };
   }
   return {
@@ -351,9 +426,24 @@ const getThemeClasses = (theme: string) => {
     progressBar: 'bg-purple-900/50',
     progressBarFill: 'bg-purple-500',
     breadcrumb: 'text-purple-200 hover:text-purple-300 font-medium flex items-center',
-    breadcrumbIcon: 'text-purple-300/60'
+    breadcrumbIcon: 'text-purple-300/60',
+    selectContent: 'bg-[#1A0B2E] border-purple-900/50',
+    selectItem: 'bg-[#2D1B69]/40 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20'
   };
 };
+
+type WorkflowStepStatus = 'pending' | 'running' | 'completed' | 'error';
+
+interface WorkflowStep {
+  name: string;
+  status: WorkflowStepStatus;
+  subSteps: { name: string; status: WorkflowStepStatus }[];
+  type: string;
+}
+
+interface WorkflowCardProps {
+  workflow: Workflow;
+}
 
 const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   const navigate = useNavigate();
@@ -367,33 +457,72 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10);
+  const [countdown, setCountdown] = useState<number>(10);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showAddStepDialog, setShowAddStepDialog] = useState(false);
 
-  // Timer effect for review dialog
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isReviewDialogOpen && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+  React.useEffect(() => {
+    if (isReviewDialogOpen && !isPaused && countdown > 0) {
+      timerRef.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current!);
+            handlePublishCampaign();
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-    } else if (timeLeft === 0) {
-      setIsReviewDialogOpen(false);
-      navigate('/campaigns');
     }
     return () => {
-      if (timer) clearInterval(timer);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     };
-  }, [isReviewDialogOpen, timeLeft, navigate]);
+  }, [isReviewDialogOpen, isPaused, countdown]);
 
-  // Reset timer when review dialog opens
-  useEffect(() => {
-    if (isReviewDialogOpen) {
-      setTimeLeft(10);
-    }
-  }, [isReviewDialogOpen]);
+  const [creativeAssets, setCreativeAssets] = useState<{images: CreativeAsset[]}>({
+    images: [
+      {
+        url: 'https://via.placeholder.com/400x400',
+        aspectRatio: '1:1',
+        type: 'image'
+      },
+      {
+        url: 'https://via.placeholder.com/400x400',
+        aspectRatio: '1:1',
+        type: 'image'
+      },
+      {
+        url: 'https://via.placeholder.com/400x400',
+        aspectRatio: '1:1',
+        type: 'image'
+      }
+    ]
+  });
 
-  const [campaignConfig, setCampaignConfig] = useState({
-    name: '',
-    brandPersona: '',
+  const [generatedContent, setGeneratedContent] = useState<GeneratedContent>({
+    headlines: [
+      'Experience Innovation Today',
+      'Transform Your Business Now',
+      'Unlock Your Potential'
+    ],
+    descriptions: [
+      'Discover cutting-edge solutions that drive growth and innovation for your business needs.',
+      'Transform your workflow with our advanced AI-powered tools and solutions.',
+      'Take your business to the next level with our comprehensive suite of services.'
+    ],
+    captions: [
+      'Innovation at its finest',
+      'Future of business is here',
+      'Excellence in every pixel'
+    ]
+  });
+
+  const [campaignConfig, setCampaignConfig] = useState<CampaignConfig>({
+    name: 'Sample Campaign',
+    brandPersona: 'Professional and Innovative',
     targetDemographic: {
       ageRange: { min: 18, max: 65 },
       gender: ['male', 'female'],
@@ -413,109 +542,30 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
       end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     }
   });
-  const [creativeAssets, setCreativeAssets] = useState<{
-    images: { url: string; aspectRatio: string }[];
-  }>({
-    images: [
-      { url: 'https://via.placeholder.com/300x300', aspectRatio: '1:1' },
-      { url: 'https://via.placeholder.com/300x400', aspectRatio: '3:4' },
-      { url: 'https://via.placeholder.com/400x300', aspectRatio: '4:3' }
-    ]
-  });
-  const [generatedContent, setGeneratedContent] = useState<{
-    headlines: string[];
-    descriptions: string[];
-    captions: string[];
-  }>({
-    headlines: [],
-    descriptions: [],
-    captions: []
-  });
 
-  const [isAddStepDialogOpen, setIsAddStepDialogOpen] = useState(false);
-
-  const handleAddStep = (stepType: typeof stepTypes[0]) => {
-    const newNode = {
-      id: `step-${nodes.length + 1}`,
-      type: 'custom',
-      position: { 
-        x: Math.max(...nodes.map(n => n.position.x)) + 200,
-        y: nodes[nodes.length - 1].position.y
-      },
-      data: { 
-        label: stepType.name,
-        status: 'pending',
-        type: stepType.id,
-        icon: stepType.icon,
-        onDelete: (id: string) => {
-          const nodeIndex = parseInt(id);
-          if (!isRunning) {
-            const newSteps = [...currentSteps];
-            newSteps.splice(nodeIndex, 1);
-            setCurrentSteps(newSteps);
-            
-            setNodePositions(prev => {
-              const newPositions = { ...prev };
-              delete newPositions[id];
-              for (let i = nodeIndex + 1; i < currentSteps.length; i++) {
-                if (newPositions[i]) {
-                  newPositions[i - 1] = newPositions[i];
-                  delete newPositions[i];
-                }
-              }
-              return newPositions;
-            });
-
-            setEdges(prev => 
-              prev.filter(edge => 
-                edge.source !== id && edge.target !== id
-              )
-            );
-            setSelectedEdge(null);
-          }
-        }
-      },
-      draggable: true
+  const handleAddStep = (stepType: StepType) => {
+    const newStep: WorkflowStep = {
+      name: stepType.name,
+      status: 'pending' as WorkflowStepStatus,
+      subSteps: stepType.subSteps.map(step => ({
+        ...step,
+        status: 'pending' as WorkflowStepStatus
+      })),
+      type: stepType.type
     };
-    
-    const newEdge = {
-      id: `e${nodes.length}-${nodes.length + 1}`,
-      source: nodes[nodes.length - 1].id,
-      target: newNode.id,
-      type: 'bezier',
-      animated: currentSteps[currentSteps.length - 1].status === 'running',
-      style: { 
-        stroke: '#9333ea',
-        strokeWidth: 1.5
-      },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: '#9333ea',
-        width: 20,
-        height: 20
-      }
-    };
-    
-    setNodePositions(prev => ({ ...prev, [newNode.id]: newNode.position }));
-    setEdges(prev => [...prev, newEdge]);
-    setCurrentSteps(prev => [...prev, { 
-      name: stepType.name, 
-      status: 'pending', 
-      subSteps: [],
-      type: stepType.id
-    }]);
-    setIsAddStepDialogOpen(false);
+    setCurrentSteps([...currentSteps, newStep]);
+    setShowAddStepDialog(false);
   };
 
   // Initialize steps from workflow prop
-  useEffect(() => {
+  React.useEffect(() => {
     if (workflow.steps) {
       setCurrentSteps(workflow.steps);
     }
   }, [workflow.steps]);
 
   // Initialize node positions if not set
-  useEffect(() => {
+  React.useEffect(() => {
     const spacing = 250; // Increased spacing between nodes
     const startY = 100; // Starting Y position
     const initialPositions: { [key: string]: { x: number; y: number } } = {};
@@ -539,7 +589,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   };
 
   // Create flow nodes and edges based on workflow steps
-  const getFlowElements = useCallback(() => {
+  const getFlowElements = React.useCallback(() => {
     const nodes: Node[] = currentSteps.map((step, index) => ({
       id: `${index}`,
       type: 'custom',
@@ -592,7 +642,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   const { nodes } = getFlowElements();
 
   // Initialize edges when steps change
-  useEffect(() => {
+  React.useEffect(() => {
     // Create default sequential connections
     const defaultEdges: Edge[] = currentSteps.slice(0, -1).map((_, index) => ({
       id: `e${index}-${index + 1}`,
@@ -601,14 +651,16 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
       type: 'bezier',
       animated: currentSteps[index].status === 'running',
       style: { 
-        stroke: currentSteps[index].status === 'completed' ? '#9333ea' : 
+        stroke: theme === "light" ? '#6B7280' : 
+                currentSteps[index].status === 'completed' ? '#9333ea' : 
                 currentSteps[index].status === 'running' ? '#7e22ce' : 
                 '#a855f7',
         strokeWidth: 1.5
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: currentSteps[index].status === 'completed' ? '#9333ea' : 
+        color: theme === "light" ? '#6B7280' : 
+               currentSteps[index].status === 'completed' ? '#9333ea' : 
                currentSteps[index].status === 'running' ? '#7e22ce' : 
                '#a855f7',
         width: 20,
@@ -627,7 +679,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   }, [currentSteps]);
 
   // Function to handle substep execution
-  const handleSubStep = useCallback((stepIndex: number, subStepIndex: number) => {
+  const handleSubStep = React.useCallback((stepIndex: number, subStepIndex: number) => {
     const currentStep = currentSteps[stepIndex];
     
     // If we're in Campaign Planning step, update configuration
@@ -773,7 +825,7 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
   }, [currentSteps, campaignConfig]);
 
   // Handle running workflow
-  const runWorkflow = useCallback(() => {
+  const runWorkflow = React.useCallback(() => {
     if (!currentSteps.length || isRunning) return;
     
     setIsRunning(true);
@@ -794,6 +846,14 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
     handleSubStep(0, 0);
   }, [currentSteps.length, isRunning, handleSubStep]);
+
+  const handlePublishCampaign = () => {
+    setIsReviewDialogOpen(false);
+    // Add any campaign publishing logic here
+    
+    // Redirect to campaigns page
+    navigate('/campaigns');
+  };
 
   const CircularTimer = ({ timeLeft }: { timeLeft: number }) => {
     const circumference = 2 * Math.PI * 18; // radius = 18
@@ -881,9 +941,13 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                 </span>
               </div>
               <Button
-                size="sm"
                 variant="outline"
-                className={`${getThemeClasses(theme).buttonOutline} mt-5`}
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring mt-4 glow-effect",
+                  theme === "light"
+                    ? "bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-900 border-purple-300 hover:border-purple-400"
+                    : "bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+                )}
                 onClick={runWorkflow}
                 disabled={isRunning || currentSteps.length === 0}
               >
@@ -902,66 +966,33 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
             </div>
 
             {/* Flow diagram with add step capability */}
-            <div className="h-[170px] bg-[#1A0B2E] rounded-xl border border-[#6D28D9]/20 overflow-hidden relative">
-              <style>{`
-                .react-flow__attribution {
-                  display: none !important;
-                }
-                .react-flow__controls {
-                  background: transparent;
-                  border: none;
-                  box-shadow: none;
-                  display: flex;
-                  flex-direction: column;
-                  gap: 6px;
-                  padding: 6px;
-                  margin-top: 55px;
-                  margin-right: 6px;
-                }
-                .react-flow__controls-button {
-                  background: #7E22CE !important;
-                  border: none !important;
-                  border-radius: 6px !important;
-                  width: 20px !important;
-                  height: 20px !important;
-                  color: white !important;
-                  transition: all 0.2s ease-out !important;
-                  padding: 3px !important;
-                  margin: 0 !important;
-                }
-                .react-flow__controls-button:hover {
-                  background: #7C3AED !important;
-                  color: white !important;
-                }
-                .react-flow__controls-button svg {
-                  fill: currentColor;
-                  width: 10px;
-                  height: 10px;
-                }
-                .react-flow__controls-button[title="fit view"] svg {
-                  transform: scale(0.8);
-                }
-                .react-flow__controls-button + .react-flow__controls-button {
-                  margin-top: 6px !important;
-                }
-              `}</style>
-              <div 
-                className="absolute inset-0"
-                style={{
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(109, 40, 217, 0.3) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(109, 40, 217, 0.3) 1px, transparent 1px),
-                    linear-gradient(to right, rgba(109, 40, 217, 0.1) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(109, 40, 217, 0.1) 1px, transparent 1px)
-                  `,
-                  backgroundSize: '24px 24px, 24px 24px, 8px 8px, 8px 8px',
-                  opacity: 0.8,
-                  pointerEvents: 'none'
-                }}
-              />
+            <div className={cn(
+              "relative w-full h-[180px] rounded-lg border",
+              theme === "light"
+                ? "bg-white border-gray-200"
+                : "bg-[#1A0B2E] border-purple-500/20"
+            )}>
               <ReactFlow
                 nodes={nodes}
-                edges={edges}
+                edges={edges.map(edge => ({
+                  ...edge,
+                  style: { 
+                    stroke: theme === "light" ? '#6B7280' : 
+                            edge.animated ? '#7e22ce' : 
+                            edge.target === 'end' ? '#9333ea' : 
+                            '#a855f7',
+                    strokeWidth: 1.5
+                  },
+                  markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    color: theme === "light" ? '#6B7280' : 
+                           edge.animated ? '#7e22ce' : 
+                           edge.target === 'end' ? '#9333ea' : 
+                           '#a855f7',
+                    width: 20,
+                    height: 20
+                  }
+                }))}
                 nodeTypes={{ custom: CustomNode }}
                 fitView
                 minZoom={0.5}
@@ -1000,12 +1031,16 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                     type: 'bezier',
                     animated: currentSteps[parseInt(params.source)].status === 'running',
                     style: { 
-                      stroke: '#9333ea',
+                      stroke: theme === "light" ? '#6B7280' : 
+                              currentSteps[parseInt(params.source)].status === 'running' ? '#7e22ce' : 
+                              '#a855f7',
                       strokeWidth: 1.5
                     },
                     markerEnd: {
                       type: MarkerType.ArrowClosed,
-                      color: '#9333ea',
+                      color: theme === "light" ? '#6B7280' : 
+                             currentSteps[parseInt(params.source)].status === 'running' ? '#7e22ce' : 
+                             '#a855f7',
                       width: 20,
                       height: 20
                     }
@@ -1026,21 +1061,14 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                 }}
                 proOptions={{ hideAttribution: true }}
               >
-                <Background 
-                  color="#475569"
-                  variant={BackgroundVariant.Dots}
-                  gap={20}
-                  size={1}
-                  style={{ opacity: 0.2 }}
-                />
+                <div className={`grid-background ${theme === "light" ? "grid-background--light" : "grid-background--dark"}`} />
                 <Controls 
-                  showInteractive={false}
-                  className={getThemeClasses(theme).controlsBackground} 
+                  className="react-flow__controls"
                 />
                 {/* Add Step Button */}
                 <div className="absolute bottom-4 right-4 z-10">
                   <button
-                    onClick={() => setIsAddStepDialogOpen(true)}
+                    onClick={() => setShowAddStepDialog(true)}
                     className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#1A0B2E]"
                   >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1104,36 +1132,82 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
                       {currentSteps[currentStepIndex].subSteps.map((subStep, index) => (
                         <div 
                           key={index}
-                          className={`flex items-center justify-between p-2.5 rounded-lg transition-colors duration-200 ${
-                            subStep.status === 'running' ? 'bg-[#2D1B69]/50 shadow-lg shadow-purple-500/10' :
-                            subStep.status === 'completed' ? 'bg-[#2D1B69]/30' :
-                            'bg-[#2D1B69]/10'
-                          }`}
+                          className={cn(
+                            "flex items-center justify-between p-2.5 rounded-lg transition-colors duration-200",
+                            theme === "light" 
+                              ? subStep.status === 'running' 
+                                ? 'bg-purple-100/70 shadow-lg shadow-purple-500/10' 
+                                : subStep.status === 'completed' 
+                                ? 'bg-green-50' 
+                                : 'bg-gray-50'
+                              : subStep.status === 'running' 
+                                ? 'bg-[#2D1B69]/70 shadow-lg shadow-purple-500/10' 
+                                : subStep.status === 'completed' 
+                                ? 'bg-green-900/20' 
+                                : 'bg-[#2D1B69]/20'
+                          )}
                         >
                           <div className="flex items-center min-w-0 gap-3">
                             <div className="relative flex items-center justify-center w-[3rem] flex-shrink-0">
-                              <div className={`w-5 h-5 rounded-full transition-all duration-300 border-2 flex items-center justify-center ${
-                                subStep.status === 'running' ? 'border-purple-400 bg-[#1A0B2E] shadow-lg shadow-purple-500/20' :
-                                subStep.status === 'completed' ? 'border-green-400 bg-green-400' :
-                                'border-purple-500/20 bg-[#1A0B2E]'
-                              }`}>
+                              <div className={cn(
+                                "w-5 h-5 rounded-full transition-all duration-300 border-2 flex items-center justify-center",
+                                theme === "light"
+                                  ? subStep.status === 'running'
+                                    ? 'border-purple-500 bg-white shadow-lg shadow-purple-500/20'
+                                    : subStep.status === 'completed'
+                                    ? 'border-green-500 bg-green-500'
+                                    : 'border-gray-300 bg-white'
+                                  : subStep.status === 'running'
+                                    ? 'border-purple-400 bg-[#1A0B2E] shadow-lg shadow-purple-500/20'
+                                    : subStep.status === 'completed'
+                                    ? 'border-green-400 bg-green-400'
+                                    : 'border-purple-500/20 bg-[#1A0B2E]'
+                              )}>
                                 {subStep.status === 'running' && (
-                                  <RotateCw className="w-2.5 h-2.5 text-purple-400 animate-spin" />
+                                  <RotateCw className={cn(
+                                    "w-2.5 h-2.5",
+                                    theme === "light" ? "text-purple-600" : "text-purple-400",
+                                    "animate-spin"
+                                  )} />
                                 )}
                                 {subStep.status === 'completed' && (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[#1A0B2E]" />
+                                  <div className={cn(
+                                    "w-1.5 h-1.5 rounded-full",
+                                    theme === "light" ? "bg-white" : "bg-[#1A0B2E]"
+                                  )} />
                                 )}
                               </div>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className={getThemeClasses(theme).subText}>{subStep.name}</p>
+                              <p className={cn(
+                                theme === "light"
+                                  ? subStep.status === 'running'
+                                    ? 'text-purple-900 font-medium'
+                                    : subStep.status === 'completed'
+                                    ? 'text-green-800'
+                                    : 'text-gray-600'
+                                  : subStep.status === 'running'
+                                    ? 'text-purple-200 font-medium'
+                                    : subStep.status === 'completed'
+                                    ? 'text-green-300'
+                                    : 'text-purple-300/70'
+                              )}>{subStep.name}</p>
                             </div>
                           </div>
-                          <span className={`text-xs px-2.5 py-1 rounded-full flex-shrink-0 ml-4 font-medium ${
-                            subStep.status === 'completed' ? 'bg-green-400/10 text-green-400' :
-                            subStep.status === 'running' ? 'bg-purple-400/10 text-purple-400' :
-                            'bg-purple-400/5 text-purple-400/50'
-                          }`}>
+                          <span className={cn(
+                            "text-xs px-2.5 py-1 rounded-full flex-shrink-0 ml-4 font-medium",
+                            theme === "light"
+                              ? subStep.status === 'completed'
+                                ? 'bg-green-100 text-green-700'
+                                : subStep.status === 'running'
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-gray-100 text-gray-600'
+                              : subStep.status === 'completed'
+                                ? 'bg-green-400/10 text-green-400'
+                                : subStep.status === 'running'
+                                ? 'bg-purple-400/10 text-purple-400'
+                                : 'bg-purple-400/5 text-purple-400/50'
+                          )}>
                             {subStep.status.charAt(0).toUpperCase() + subStep.status.slice(1)}
                           </span>
                         </div>
@@ -1146,318 +1220,541 @@ const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
 
             {/* Review Dialog */}
             <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-              <DialogContent className={getThemeClasses(theme).dialog}>
-                <DialogHeader>
+              <DialogContent className={cn(
+                "max-w-[1400px] h-[95vh] flex flex-col p-0",
+                theme === "light" ? "bg-white" : getThemeClasses(theme).dialog
+              )}>
+                <DialogHeader className={cn(
+                  "flex-none px-3 py-1.5 border-b",
+                  theme === "light" ? "bg-white border-gray-200" : "bg-[#1A0B2E] border-purple-500/20"
+                )}>
                   <div className="flex justify-between items-center">
-                    <div>
-                      <DialogTitle className={getThemeClasses(theme).heading}>
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-purple-600" />
+                      <DialogTitle className={cn(
+                        "text-base font-semibold",
+                        theme === "light" ? "text-gray-900" : getThemeClasses(theme).heading
+                      )}>
                         Campaign Review
                       </DialogTitle>
                     </div>
                   </div>
                 </DialogHeader>
 
-                <div className="grid grid-cols-12 gap-5 py-5 max-h-[72vh] overflow-y-auto">
-                  {/* Left Column - Campaign Details */}
-                  <div className="col-span-8 space-y-5">
-                    {/* Campaign Configuration Section */}
-                    <div className="space-y-5 bg-[#2D1B69]/10 rounded-lg p-5">
-                      <div className="flex items-center space-x-2">
-                        <Activity className="w-5 h-5 text-purple-400" />
-                        <h3 className={getThemeClasses(theme).heading}>
-                          Campaign Configuration
-                        </h3>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-5">
-                        {/* Basic Info */}
+                <div className={cn(
+                  "flex-1 p-3 overflow-y-auto min-h-0",
+                  theme === "light" ? "bg-gray-50" : "bg-[#0F0225]"
+                )}>
+                  <div className="grid grid-cols-2 gap-3 max-w-[1300px] mx-auto">
+                    {/* Left Column - Campaign Details */}
+                    <div className="space-y-2 h-full flex flex-col">
+                      {/* Campaign Configuration Section */}
+                      <div className={cn(
+                        "rounded-lg p-2",
+                        theme === "light" ? "bg-white border border-gray-200" : "bg-[#1A0B2E] border border-purple-500/20"
+                      )}>
                         <div className="space-y-2">
-                          <label className={getThemeClasses(theme).subText}>
-                            Campaign Name
-                          </label>
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).text}>{campaignConfig.name}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className={getThemeClasses(theme).subText}>
-                            Brand Persona
-                          </label>
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).text}>{campaignConfig.brandPersona}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Target Demographic */}
-                      <div className="space-y-3">
-                        <label className={getThemeClasses(theme).subText}>
-                          Target Demographic
-                        </label>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).subText}>
-                              Age Range
-                            </p>
-                            <p className={getThemeClasses(theme).text}>{campaignConfig.targetDemographic.ageRange.min} - {campaignConfig.targetDemographic.ageRange.max} years</p>
-                          </div>
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).subText}>
-                              Gender
-                            </p>
-                            <p className={getThemeClasses(theme).text}>{campaignConfig.targetDemographic.gender.join(', ')}</p>
-                          </div>
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).subText}>
-                              Locations
-                            </p>
-                            <p className={getThemeClasses(theme).text}>{campaignConfig.targetDemographic.locations.join(', ')}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Budget Distribution */}
-                      <div className="space-y-3">
-                        <label className={getThemeClasses(theme).subText}>
-                          Budget Distribution
-                        </label>
-                        <div className="grid grid-cols-4 gap-4">
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).subText}>
-                              Total Daily Budget
-                            </p>
-                            <p className={getThemeClasses(theme).text}>{campaignConfig.budget.currency} {campaignConfig.budget.total}</p>
-                          </div>
-                          {Object.entries(campaignConfig.adPlatforms).map(([platform, data]) => (
-                            data.selected && (
-                              <div key={platform} className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                                <p className={getThemeClasses(theme).subText}>
-                                  {platform}
-                                </p>
-                                <p className={getThemeClasses(theme).text}>
-                                  {data.budget}% 
-                                  <span className={getThemeClasses(theme).subText}>
-                                    ({campaignConfig.budget.currency} {(campaignConfig.budget.total * data.budget / 100).toFixed(2)})
-                                  </span>
+                          {/* Basic Info */}
+                          <div>
+                            <h3 className={cn(
+                              "text-sm font-semibold mb-1.5 flex items-center gap-1.5",
+                              theme === "light" ? "text-gray-900" : "text-purple-200"
+                            )}>
+                              <Info className="w-3.5 h-3.5 text-purple-500" />
+                              Basic Information
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Campaign Name
+                                </label>
+                                <p className={cn(
+                                  "text-sm mt-0.5",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {campaignConfig.name}
                                 </p>
                               </div>
-                            )
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Campaign Duration */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className={getThemeClasses(theme).subText}>
-                            Start Date
-                          </label>
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).text}>{new Date(campaignConfig.dates.start).toLocaleDateString()}</p>
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Brand Persona
+                                </label>
+                                <p className={cn(
+                                  "text-sm mt-0.5",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {campaignConfig.brandPersona}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className={getThemeClasses(theme).subText}>
-                            End Date
-                          </label>
-                          <div className="p-4 bg-[#2D1B69]/30 rounded-lg">
-                            <p className={getThemeClasses(theme).text}>{new Date(campaignConfig.dates.end).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Creative Assets Section */}
-                    <div className="space-y-5 bg-[#2D1B69]/10 rounded-lg p-5">
-                      <div className="flex items-center space-x-2">
-                        <Sparkles className="w-5 h-5 text-purple-400" />
-                        <h3 className={getThemeClasses(theme).heading}>
-                          Creative Assets
-                        </h3>
-                      </div>
-                      <div className="grid grid-cols-3 gap-5">
-                        {creativeAssets.images.map((image, index) => (
-                          <div key={index} className="group relative">
-                            <div className="aspect-square bg-[#2D1B69]/30 rounded-lg overflow-hidden">
-                              <img 
-                                src={image.url} 
-                                alt={`Creative ${index + 1}`}
-                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="absolute bottom-0 left-0 right-0 p-3">
-                                  <p className={getThemeClasses(theme).subText}>
-                                    Aspect Ratio: {image.aspectRatio}
+                          {/* Target Demographic */}
+                          <div>
+                            <h3 className={cn(
+                              "text-sm font-semibold mb-1.5 flex items-center gap-1.5",
+                              theme === "light" ? "text-gray-900" : "text-purple-200"
+                            )}>
+                              <Users className="w-3.5 h-3.5 text-purple-500" />
+                              Target Demographic
+                            </h3>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Age Range
+                                </label>
+                                <p className={cn(
+                                  "text-sm mt-0.5",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {campaignConfig.targetDemographic.ageRange.min} - {campaignConfig.targetDemographic.ageRange.max} years
+                                </p>
+                              </div>
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Gender
+                                </label>
+                                <p className={cn(
+                                  "text-sm mt-0.5",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {campaignConfig.targetDemographic.gender.join(', ')}
+                                </p>
+                              </div>
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Locations
+                                </label>
+                                <p className={cn(
+                                  "text-sm mt-0.5",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {campaignConfig.targetDemographic.locations.join(', ')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Budget & Timeline */}
+                          <div>
+                            <h3 className={cn(
+                              "text-sm font-semibold mb-1.5 flex items-center gap-1.5",
+                              theme === "light" ? "text-gray-900" : "text-purple-200"
+                            )}>
+                              <DollarSign className="w-3.5 h-3.5 text-purple-500" />
+                              Budget & Timeline
+                            </h3>
+                            <div className="space-y-2">
+                              {/* Total Budget and Daily Budget */}
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Total Budget
+                                </label>
+                                <p className={cn(
+                                  "text-sm mt-0.5",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {campaignConfig.budget.currency} {campaignConfig.budget.total}
+                                </p>
+                                <div className="mt-1">
+                                  <p className={cn(
+                                    "text-xs",
+                                    theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                  )}>
+                                    Daily Budget:
+                                    <span className="ml-1">
+                                      {campaignConfig.budget.currency} {(campaignConfig.budget.total / 30).toFixed(2)}
+                                    </span>
                                   </p>
+                                </div>
+                              </div>
+
+                              {/* Platform Budget Distribution */}
+                              <div className="grid grid-cols-3 gap-2">
+                                {Object.entries(campaignConfig.adPlatforms).map(([platform, data]) => (
+                                  data.selected && (
+                                    <div key={platform} className={cn(
+                                      "p-1.5 rounded-lg",
+                                      theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                                    )}>
+                                      <label className={cn(
+                                        "block text-xs font-medium",
+                                        theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                      )}>
+                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                                      </label>
+                                      <div className="space-y-1">
+                                        <p className={cn(
+                                          "text-sm",
+                                          theme === "light" ? "text-gray-900" : "text-purple-200"
+                                        )}>
+                                          {data.budget}% of budget
+                                        </p>
+                                        <p className={cn(
+                                          "text-xs",
+                                          theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                        )}>
+                                          {campaignConfig.budget.currency} {(campaignConfig.budget.total * data.budget / 100).toFixed(2)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )
+                                ))}
+                              </div>
+
+                              {/* Campaign Duration */}
+                              <div className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <label className={cn(
+                                  "block text-xs font-medium",
+                                  theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                )}>
+                                  Campaign Duration
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <p className={cn(
+                                      "text-xs mb-1",
+                                      theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                    )}>
+                                      Start Date
+                                    </p>
+                                    <p className={cn(
+                                      "text-sm",
+                                      theme === "light" ? "text-gray-900" : "text-purple-200"
+                                    )}>
+                                      {new Date(campaignConfig.dates.start).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className={cn(
+                                      "text-xs mb-1",
+                                      theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                                    )}>
+                                      End Date
+                                    </p>
+                                    <p className={cn(
+                                      "text-sm",
+                                      theme === "light" ? "text-gray-900" : "text-purple-200"
+                                    )}>
+                                      {new Date(campaignConfig.dates.end).toLocaleDateString()}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        ))}
+                        </div>
+                      </div>
+
+                      {/* Creative Assets Section */}
+                      <div className={cn(
+                        "rounded-lg p-2 mt-auto",
+                        theme === "light" ? "bg-white border border-gray-200" : "bg-[#1A0B2E] border border-purple-500/20"
+                      )}>
+                        <h3 className={cn(
+                          "text-sm font-semibold mb-1.5 flex items-center gap-1.5",
+                          theme === "light" ? "text-gray-900" : "text-purple-200"
+                        )}>
+                          <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                          Creative Assets
+                        </h3>
+                        <div className="grid grid-cols-3 gap-2 h-[160px]">
+                          {creativeAssets.images.map((image, index) => (
+                            <div key={index} className="group relative h-full">
+                              <div className={cn(
+                                "h-full rounded-lg overflow-hidden",
+                                theme === "light" ? "bg-gray-100" : "bg-[#2D1B69]/30"
+                              )}>
+                                <img 
+                                  src={image.url} 
+                                  alt={`Creative ${index + 1}`}
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="absolute bottom-0 left-0 right-0 p-1">
+                                    <p className="text-white/90 text-[10px]">
+                                      Aspect Ratio: {image.aspectRatio}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Right Column - Ad Copy */}
-                  <div className="col-span-4 space-y-5 h-full">
-                    <div className="flex-1 overflow-y-auto">
-                      <div className="p-5 space-y-5">
-                        <section>
-                          <h3 className={getThemeClasses(theme).heading}>
-                            Ad Copy
-                          </h3>
-                          <div className="space-y-5">
-                            {/* Headlines */}
-                            <div className="space-y-3">
-                              <h4 className={getThemeClasses(theme).subText}>
-                                Headlines
-                              </h4>
-                              <div className="space-y-2">
-                                {generatedContent.headlines.map((headline, index) => (
-                                  <div key={index} className="p-3 bg-[#2D1B69]/30 rounded-lg">
-                                    <p className={getThemeClasses(theme).text}>{headline}</p>
-                                    <div className="mt-1 flex items-center justify-between">
-                                      <span className={getThemeClasses(theme).subText}>
-                                        Headline {index + 1}
-                                      </span>
-                                      <span className={getThemeClasses(theme).subText}>
-                                        {headline.length} chars
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
+                    {/* Right Column - Ad Copy */}
+                    <div className={cn(
+                      "rounded-lg p-2 h-full",
+                      theme === "light" ? "bg-white border border-gray-200" : "bg-[#1A0B2E] border border-purple-500/20"
+                    )}>
+                      <h3 className={cn(
+                        "text-sm font-semibold mb-1.5 flex items-center gap-1.5",
+                        theme === "light" ? "text-gray-900" : "text-purple-200"
+                      )}>
+                        <Mail className="w-3.5 h-3.5 text-purple-500" />
+                        Ad Copy
+                      </h3>
+                      
+                      <div className="space-y-2">
+                        {/* Headlines */}
+                        <div>
+                          <h4 className={cn(
+                            "text-xs font-medium mb-1",
+                            theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                          )}>
+                            Headlines
+                          </h4>
+                          <div className="grid gap-2">
+                            {generatedContent.headlines.slice(0, 3).map((headline, index) => (
+                              <div key={index} className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <p className={cn(
+                                  "text-sm",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {headline}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={cn(
+                                    "text-[10px] py-0.5 px-1.5 rounded",
+                                    theme === "light" 
+                                      ? "bg-gray-100 text-gray-600" 
+                                      : "bg-[#2D1B69] text-purple-300/70"
+                                  )}>
+                                    {headline.length}/30 chars
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-
-                            {/* Descriptions */}
-                            <div className="space-y-3">
-                              <h4 className={getThemeClasses(theme).subText}>
-                                Descriptions
-                              </h4>
-                              <div className="space-y-2">
-                                {generatedContent.descriptions.map((desc, index) => (
-                                  <div key={index} className="p-3 bg-[#2D1B69]/30 rounded-lg">
-                                    <p className={getThemeClasses(theme).text}>{desc}</p>
-                                    <div className="mt-1 flex items-center justify-between">
-                                      <span className={getThemeClasses(theme).subText}>
-                                        Description {index + 1}
-                                      </span>
-                                      <span className={getThemeClasses(theme).subText}>
-                                        {desc.length} chars
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Captions */}
-                            <div className="space-y-3">
-                              <h4 className={getThemeClasses(theme).subText}>
-                                Captions
-                              </h4>
-                              <div className="space-y-2">
-                                {generatedContent.captions.map((caption, index) => (
-                                  <div key={index} className="p-3 bg-[#2D1B69]/30 rounded-lg">
-                                    <p className={getThemeClasses(theme).text}>{caption}</p>
-                                    <div className="mt-1 flex items-center justify-between">
-                                      <span className={getThemeClasses(theme).subText}>
-                                        Caption {index + 1}
-                                      </span>
-                                      <span className={getThemeClasses(theme).subText}>
-                                        {caption.length} chars
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                            ))}
                           </div>
-                        </section>
+                        </div>
+
+                        {/* Descriptions */}
+                        <div>
+                          <h4 className={cn(
+                            "text-xs font-medium mb-1",
+                            theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                          )}>
+                            Descriptions
+                          </h4>
+                          <div className="grid gap-2">
+                            {generatedContent.descriptions.slice(0, 3).map((desc, index) => (
+                              <div key={index} className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <p className={cn(
+                                  "text-sm",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {desc}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={cn(
+                                    "text-[10px] py-0.5 px-1.5 rounded",
+                                    theme === "light" 
+                                      ? "bg-gray-100 text-gray-600" 
+                                      : "bg-[#2D1B69] text-purple-300/70"
+                                  )}>
+                                    {desc.length}/90 chars
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Captions */}
+                        <div>
+                          <h4 className={cn(
+                            "text-xs font-medium mb-1",
+                            theme === "light" ? "text-gray-600" : "text-purple-300/70"
+                          )}>
+                            Captions
+                          </h4>
+                          <div className="grid gap-2">
+                            {generatedContent.captions.slice(0, 3).map((caption, index) => (
+                              <div key={index} className={cn(
+                                "p-1.5 rounded-lg",
+                                theme === "light" ? "bg-gray-50" : "bg-[#2D1B69]/30"
+                              )}>
+                                <p className={cn(
+                                  "text-sm",
+                                  theme === "light" ? "text-gray-900" : "text-purple-200"
+                                )}>
+                                  {caption}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={cn(
+                                    "text-[10px] py-0.5 px-1.5 rounded",
+                                    theme === "light" 
+                                      ? "bg-gray-100 text-gray-600" 
+                                      : "bg-[#2D1B69] text-purple-300/70"
+                                  )}>
+                                    {caption.length}/30 chars
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <DialogFooter className="border-t border-purple-500/20 pt-6">
-                  <div className="flex items-center justify-between w-full">
+                <DialogFooter className={cn(
+                  "flex-none px-3 py-1.5 border-t",
+                  theme === "light" ? "bg-white border-gray-200" : "bg-[#1A0B2E] border border-purple-500/20"
+                )}>
+                  <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center gap-2 mr-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsPaused(!isPaused)}
+                        className={cn(
+                          "text-xs px-3 py-1 h-7",
+                          theme === "light" ? "hover:bg-gray-100" : "hover:bg-purple-500/10"
+                        )}
+                      >
+                        {isPaused ? (
+                          <>
+                            <Play className="w-3 h-3 mr-1" />
+                            Resume
+                          </>
+                        ) : (
+                          <>
+                            <Pause className="w-3 h-3 mr-1" />
+                            Pause
+                          </>
+                        )}
+                      </Button>
+                      <span className={cn(
+                        "text-sm font-medium",
+                        countdown <= 3 ? "text-red-500" : theme === "light" ? "text-gray-700" : "text-purple-200"
+                      )}>
+                        Auto-publishing in {countdown}s
+                      </span>
+                    </div>
                     <Button
                       variant="outline"
                       onClick={() => setIsReviewDialogOpen(false)}
-                      className={getThemeClasses(theme).buttonOutline}
+                      className={cn(
+                        "text-xs",
+                        theme === "light" ? "hover:bg-gray-100" : "hover:bg-purple-500/10"
+                      )}
                     >
-                      Cancel Workflow
+                      Close
                     </Button>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-3 bg-purple-500/10 px-4 py-2 rounded-lg">
-                        <CircularTimer timeLeft={timeLeft} />
-                        <span className={getThemeClasses(theme).subText}>
-                          Auto-publishing
-                        </span>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          setIsReviewDialogOpen(false);
-                          navigate('/campaigns');
-                        }}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
-                      >
-                        Approve and Publish
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={handlePublishCampaign}
+                      className={cn(
+                        "text-xs bg-purple-600 hover:bg-purple-700",
+                        theme === "light" ? "text-white" : "text-purple-100"
+                      )}
+                    >
+                      Confirm & Start
+                    </Button>
                   </div>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
 
-            {/* Step Selection Dialog */}
-            <Dialog open={isAddStepDialogOpen} onOpenChange={setIsAddStepDialogOpen}>
-              <DialogContent className={getThemeClasses(theme).dialog}>
-                <div className="border-b border-purple-500/20 px-4 py-3">
-                  <DialogHeader>
-                    <DialogTitle className={getThemeClasses(theme).heading}>
-                      Add New Step
-                    </DialogTitle>
-                  </DialogHeader>
-                </div>
-
-                <div className="px-4 py-3 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-purple-500/10 scrollbar-thumb-purple-500/40 hover:scrollbar-thumb-purple-500/60 max-h-[calc(60vh-120px)]">
-                  <div className="space-y-2">
-                    {stepTypes.map((stepType) => (
-                      <button
-                        key={stepType.id}
-                        className="w-full bg-[#3D2B79]/40 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center gap-3 transition-colors"
-                        onClick={() => {
-                          const TypeIcon = stepType.icon;
-                          handleAddStep(stepType);
-                          setIsAddStepDialogOpen(false);
-                        }}
-                      >
-                        {React.createElement(stepType.icon, { className: "w-5 h-5 text-purple-400" })}
-                        <div className="text-left">
-                          <div className={getThemeClasses(theme).text}>
-                            {stepType.name}
+            {/* Add Step Dialog */}
+            <Dialog open={showAddStepDialog} onOpenChange={setShowAddStepDialog}>
+              <DialogContent className={cn(
+                "max-w-lg",
+                theme === "light" ? "bg-white" : "bg-[#1A0B2E]"
+              )}>
+                <DialogHeader>
+                  <DialogTitle className={theme === "light" ? "text-gray-900" : "text-purple-200"}>
+                    Add Step
+                  </DialogTitle>
+                  <DialogDescription className={theme === "light" ? "text-gray-500" : "text-purple-200/70"}>
+                    Choose a step type to add to your workflow
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-2 py-4">
+                  {stepTypes.map((type, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      onClick={() => handleAddStep(type)}
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        theme === "light" 
+                          ? "hover:bg-gray-100 border-gray-200" 
+                          : "hover:bg-purple-500/10 border-purple-500/20"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "p-1 rounded",
+                          theme === "light" ? "bg-gray-100" : "bg-purple-500/20"
+                        )}>
+                          {React.createElement(type.icon, {
+                            className: theme === "light" ? "text-gray-600" : "text-purple-200"
+                          })}
+                        </div>
+                        <div>
+                          <div className={theme === "light" ? "text-gray-900" : "text-purple-200"}>
+                            {type.name}
                           </div>
-                          <div className={getThemeClasses(theme).subText}>
-                            {stepType.description}
+                          <div className={cn(
+                            "text-xs",
+                            theme === "light" ? "text-gray-500" : "text-purple-200/70"
+                          )}>
+                            {type.description}
                           </div>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <DialogFooter className="mt-6">
-                  <div className="flex justify-end gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsAddStepDialogOpen(false)}
-                      className={getThemeClasses(theme).buttonOutline}
-                    >
-                      Cancel
+                      </div>
                     </Button>
-                  </div>
-                </DialogFooter>
+                  ))}
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -1472,16 +1769,39 @@ export default function AIWorkflows() {
   const [workflows] = useState<Workflow[]>(workflowTemplates);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
   const [isCustomWorkflowDialogOpen, setIsCustomWorkflowDialogOpen] = useState(false);
-  const [businessGoal, setBusinessGoal] = useState('');
+  const [workflowName, setWorkflowName] = useState('');
   const [customWorkflowName, setCustomWorkflowName] = useState('');
   const [customWorkflowDescription, setCustomWorkflowDescription] = useState('');
   const [selectedProcess, setSelectedProcess] = useState<string>('');
   const [customNodes, setCustomNodes] = useState<Node[]>([]);
   const [customEdges, setCustomEdges] = useState<Edge[]>([]);
+  const [countdown, setCountdown] = useState<number>(10);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (isCustomWorkflowDialogOpen && !isPaused && countdown > 0) {
+      timerRef.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current!);
+            setIsCustomWorkflowDialogOpen(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isCustomWorkflowDialogOpen, isPaused, countdown]);
 
   const handleSaveWorkflow = () => {
     if (!customWorkflowName.trim()) {
-      // You might want to add proper error handling/notification here
+      // Show error message
       return;
     }
 
@@ -1495,10 +1815,8 @@ export default function AIWorkflows() {
       steps: []
     };
 
-    // Add the new workflow to the list
     workflows.push(newWorkflow);
     
-    // Reset form
     setCustomWorkflowName('');
     setCustomWorkflowDescription('');
     setCustomNodes([]);
@@ -1508,6 +1826,78 @@ export default function AIWorkflows() {
 
   return (
     <div className={getThemeClasses(theme).background}>
+      <style>{`
+        .react-flow__attribution {
+          display: none !important;
+        }
+        .react-flow__controls {
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 6px;
+          margin-bottom: 6px;
+          margin-left: 6px;
+        }
+        .react-flow__controls-button {
+          background: #7E22CE !important;
+          border: none !important;
+          border-radius: 6px !important;
+          width: 20px !important;
+          height: 20px !important;
+          color: white !important;
+          transition: all 0.2s ease-out !important;
+          padding: 3px !important;
+          margin: 0 !important;
+        }
+        .react-flow__controls-button:hover {
+          background: #9333EA !important;
+          color: white !important;
+        }
+        .react-flow__controls-button svg {
+          fill: currentColor;
+          width: 10px;
+          height: 10px;
+        }
+        .react-flow__controls-button + .react-flow__controls-button {
+          margin-top: 6px !important;
+        }
+        .grid-background {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .grid-background--light {
+          background-image: 
+            linear-gradient(to right, #E5E7EB 1px, transparent 1px),
+            linear-gradient(to bottom, #E5E7EB 1px, transparent 1px),
+            linear-gradient(to right, #F3F4F6 1px, transparent 1px),
+            linear-gradient(to bottom, #F3F4F6 1px, transparent 1px);
+          background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+        }
+        .grid-background--dark {
+          background-image: 
+            linear-gradient(to right, rgba(109, 40, 217, 0.2) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(109, 40, 217, 0.2) 1px, transparent 1px),
+            linear-gradient(to right, rgba(109, 40, 217, 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(109, 40, 217, 0.1) 1px, transparent 1px);
+          background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+        }
+        @keyframes subtle-glow {
+          0%, 100% {
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+          }
+          50% {
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.6);
+          }
+        }
+        .glow-effect {
+          animation: subtle-glow 2s ease-in-out infinite;
+        }
+      `}</style>
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}
@@ -1545,7 +1935,12 @@ export default function AIWorkflows() {
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  className={getThemeClasses(theme).button}
+                  className={cn(
+                    "transition-all duration-300 hover:scale-105",
+                    theme === "light"
+                      ? "bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-900 border-purple-300 hover:border-purple-400"
+                      : "bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+                  )}
                   onClick={() => setIsCustomWorkflowDialogOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -1553,7 +1948,12 @@ export default function AIWorkflows() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className={getThemeClasses(theme).button}
+                  className={cn(
+                    "transition-all duration-300 hover:scale-105",
+                    theme === "light"
+                      ? "bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-900 border-purple-300 hover:border-purple-400"
+                      : "bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+                  )}
                   onClick={() => setIsGoalDialogOpen(true)}
                 >
                   <HelpCircle className="w-4 h-4 mr-2" />
@@ -1578,8 +1978,8 @@ export default function AIWorkflows() {
                     Business Goal
                   </label>
                   <textarea
-                    value={businessGoal}
-                    onChange={(e) => setBusinessGoal(e.target.value)}
+                    value={workflowName}
+                    onChange={(e) => setWorkflowName(e.target.value)}
                     placeholder="E.g., Increase brand awareness, drive website traffic, generate leads..."
                     className={cn("h-32", getThemeClasses(theme).textarea)}
                   />
@@ -1610,7 +2010,12 @@ export default function AIWorkflows() {
                       setIsGoalDialogOpen(false);
                       // You can pass the business goal to the selected workflow here
                     }}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className={cn(
+                      "transition-all duration-300 hover:scale-105",
+                      theme === "light"
+                        ? "bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-900 border-purple-300 hover:border-purple-400"
+                        : "bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+                    )}
                   >
                     Get Started
                   </Button>
@@ -1621,153 +2026,244 @@ export default function AIWorkflows() {
 
           {/* Custom Workflow Dialog */}
           <Dialog open={isCustomWorkflowDialogOpen} onOpenChange={setIsCustomWorkflowDialogOpen}>
-            <DialogContent className={getThemeClasses(theme).dialog}>
-              <DialogHeader className="space-y-2 pb-4 border-b border-purple-500/20">
-                <DialogTitle className={getThemeClasses(theme).heading}>
+            <DialogContent className={cn(
+              "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-4xl h-screen",
+              theme === "light"
+                ? "bg-white border-gray-200 text-gray-900" 
+                : "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-50"
+            )}>
+              <button 
+                type="button" 
+                className={cn(
+                  "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground h-10 px-4 py-2",
+                  theme === "light" ? "text-gray-500" : "text-purple-200"
+                )}
+                onClick={() => setIsCustomWorkflowDialogOpen(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-x h-4 w-4">
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+                <span className="sr-only">Close</span>
+              </button>
+              <div className="flex flex-col text-center sm:text-left space-y-2 pb-4 border-b">
+                <DialogTitle className={cn(
+                  "tracking-tight text-xl font-semibold",
+                  theme === "light"
+                    ? "text-gray-900" 
+                    : "text-purple-50"
+                )}>
                   Create Custom Workflow
                 </DialogTitle>
-              </DialogHeader>
-              
-              <div className="flex flex-col space-y-6 py-6">
-                {/* Basic Information Section */}
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className={getThemeClasses(theme).subText}>
-                        Workflow Name
-                      </Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter workflow name"
-                        className="bg-[#150923] border-purple-900 focus:border-purple-500 text-purple-200 placeholder:text-purple-200/30 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-                        value={customWorkflowName}
-                        onChange={(e) => setCustomWorkflowName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="process" className={getThemeClasses(theme).subText}>
-                        Select Process
-                      </Label>
-                      <Select
-                        value={selectedProcess}
-                        onValueChange={(value) => {
-                          setSelectedProcess(value);
-                          const selectedType = stepTypes.find(p => p.id === value);
-                          if (selectedType) {
-                            const newNode = {
-                              id: `custom-step-${customNodes.length + 1}`,
-                              type: 'custom',
-                              position: { 
-                                x: 100 + (customNodes.length * 180),
-                                y: 100
-                              },
-                              data: { 
-                                label: selectedType.name,
-                                status: 'waiting',
-                                type: 'process',
-                                onDelete: (id: string) => {
-                                  setCustomNodes((nds) => nds.filter(node => node.id !== id));
-                                  setCustomEdges((eds) => eds.filter(edge => 
-                                    edge.source !== id && edge.target !== id
-                                  ));
-                                }
-                              }
-                            };
-                            setCustomNodes((nds) => [...nds, newNode]);
-                          }
-                        }}
-                      >
-                        <SelectTrigger className={getThemeClasses(theme).select}>
-                          <SelectValue placeholder="Select a process type" />
-                        </SelectTrigger>
-                        <SelectContent className={getThemeClasses(theme).selectContent}>
-                          {stepTypes.map((type) => (
-                            <SelectItem 
-                              key={type.id} 
-                              value={type.id}
-                              className="bg-[#3D2B79]/40 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20 flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2">
-                                {React.createElement(type.icon, { className: "w-4 h-4" })}
-                                <span>{type.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* ReactFlow Canvas */}
-                <div className="flex-1 bg-[#2D1B69]/20 rounded-lg border border-purple-500/20 min-h-[400px] relative">
-                  <ReactFlow
-                    nodes={customNodes}
-                    edges={customEdges}
-                    nodeTypes={{ custom: CustomNode }}
-                    fitView
-                    minZoom={0.5}
-                    maxZoom={1.5}
-                    defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
-                    fitViewOptions={{
-                      padding: 0.2,
-                      duration: 800,
-                      minZoom: 0.85,
-                      maxZoom: 0.85
-                    }}
-                    panOnDrag={true}
-                    panOnScroll={false}
-                    zoomOnScroll={true}
-                    zoomOnPinch={true}
-                    zoomOnDoubleClick={false}
-                    preventScrolling={true}
-                    nodesDraggable={true}
-                    nodesConnectable={true}
-                    elementsSelectable={true}
-                    onNodesChange={(changes) => {
-                      setCustomNodes((nds) => applyNodeChanges(changes, nds));
-                    }}
-                    onEdgesChange={(changes) => {
-                      setCustomEdges((eds) => applyEdgeChanges(changes, eds));
-                    }}
-                    onConnect={(params) => {
-                      const newEdge = {
-                        ...params,
-                        type: 'smoothstep',
-                        animated: true,
-                        style: { stroke: '#6D28D9', strokeWidth: 2 },
-                        markerEnd: {
-                          type: MarkerType.ArrowClosed,
-                          color: '#6D28D9'
-                        }
-                      };
-                      setCustomEdges((eds) => addEdge(newEdge, eds));
-                    }}
-                  >
-                    <Background 
-                      color="#475569"
-                      variant={BackgroundVariant.Dots}
-                      gap={20}
-                      size={1}
-                      style={{ opacity: 0.2 }}
-                    />
-                    <Controls className={getThemeClasses(theme).controlsBackground} />
-                  </ReactFlow>
-                </div>
+                <DialogDescription className={cn(
+                  "text-sm",
+                  theme === "light" 
+                    ? "text-gray-500" 
+                    : "text-purple-200/70"
+                )}>
+                  Create a new workflow by adding steps and configuring their sequence.
+                </DialogDescription>
               </div>
 
-              <DialogFooter className="pt-6 border-t border-purple-500/20">
+              {/* Form Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Workflow Name Input */}
+                <div>
+                  <label 
+                    htmlFor="workflowName"
+                    className={cn(
+                      "text-sm font-medium flex items-center gap-0.5",
+                      theme === "light" ? "text-gray-900" : "text-purple-50"
+                    )}
+                  >
+                    Workflow Name
+                    <span className="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input
+                    id="workflowName"
+                    value={customWorkflowName}
+                    onChange={(e) => setCustomWorkflowName(e.target.value)}
+                    required
+                    placeholder="Enter workflow name"
+                    className={cn(
+                      "mt-1.5 flex h-10 w-full rounded-md border px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                      !customWorkflowName.trim() && "border-red-500",
+                      theme === "light"
+                        ? "bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:ring-purple-500/30" 
+                        : "bg-[#2D1B69]/40 border-purple-500/20 text-purple-50 placeholder:text-purple-200/30 focus:ring-2 focus:ring-purple-500/30"
+                    )}
+                  />
+                  {!customWorkflowName.trim() && (
+                    <p className={cn(
+                      "text-xs mt-1",
+                      theme === "light" ? "text-red-500" : "text-red-400"
+                    )}>
+                      Workflow name is required
+                    </p>
+                  )}
+                </div>
+
+                {/* Process Selection */}
+                <div>
+                  <label 
+                    htmlFor="process"
+                    className={cn(
+                      "text-sm font-medium",
+                      theme === "light" ? "text-gray-900" : "text-purple-50"
+                    )}
+                  >
+                    Select Process
+                  </label>
+                  <Select
+                    value={selectedProcess}
+                    onValueChange={(value) => {
+                      setSelectedProcess(value);
+                      const selectedType = stepTypes.find(p => p.id === value);
+                      if (selectedType) {
+                        const newNode = {
+                          id: `custom-step-${customNodes.length + 1}`,
+                          type: 'custom',
+                          position: { 
+                            x: 100 + (customNodes.length * 180),
+                            y: 100
+                          },
+                          data: { 
+                            label: selectedType.name,
+                            status: 'waiting',
+                            type: 'process',
+                            onDelete: (id: string) => {
+                              setCustomNodes((nds) => nds.filter(node => node.id !== id));
+                              setCustomEdges((eds) => eds.filter(edge => 
+                                edge.source !== id && edge.target !== id
+                              ));
+                            }
+                          }
+                        };
+                        setCustomNodes((nds) => [...nds, newNode]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className={cn(
+                      "mt-1.5 flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-[#1A0B2E]",
+                      theme === "light" 
+                        ? "bg-white border-gray-200 text-gray-900" 
+                        : "bg-[#2D1B69]/40 border-purple-500/20 text-purple-50"
+                    )}>
+                      <SelectValue placeholder="Select a process type" />
+                    </SelectTrigger>
+                    <SelectContent className={cn(
+                      theme === "light" 
+                        ? "bg-white border-gray-200" 
+                        : "bg-[#1A0B2E] border-purple-500/20"
+                    )}>
+                      {stepTypes.map((type) => (
+                        <SelectItem 
+                          key={type.id} 
+                          value={type.id}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer",
+                            theme === "light" 
+                              ? "bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300" 
+                              : "bg-[#2D1B69]/70 hover:bg-[#2D1B69] text-purple-100 border border-purple-500/30"
+                          )}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{type.name}</span>
+                            {React.createElement(type.icon, { 
+                              className: cn(
+                                "w-4 h-4",
+                                theme === "light" ? "text-gray-700" : "text-purple-300"
+                              )
+                            })}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* ReactFlow Canvas */}
+              <div className={cn(
+                "flex-1 rounded-lg border min-h-[400px] relative",
+                theme === "light"
+                  ? "bg-gray-200/90 border-gray-200"
+                  : "bg-[#2D1B69]/20 border-purple-500/20"
+              )}>
+                <ReactFlow
+                  nodes={customNodes}
+                  edges={customEdges}
+                  nodeTypes={{ custom: CustomNode }}
+                  fitView
+                  minZoom={0.5}
+                  maxZoom={1.5}
+                  defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
+                  fitViewOptions={{
+                    padding: 0.2,
+                    duration: 800,
+                    minZoom: 0.85,
+                    maxZoom: 0.85
+                  }}
+                  panOnDrag={true}
+                  panOnScroll={false}
+                  zoomOnScroll={true}
+                  zoomOnPinch={true}
+                  zoomOnDoubleClick={false}
+                  preventScrolling={true}
+                  nodesDraggable={true}
+                  nodesConnectable={true}
+                  elementsSelectable={true}
+                  onNodesChange={(changes) => {
+                    setCustomNodes((nds) => applyNodeChanges(changes, nds));
+                  }}
+                  onEdgesChange={(changes) => {
+                    setCustomEdges((eds) => applyEdgeChanges(changes, eds));
+                  }}
+                  onConnect={(params) => {
+                    const newEdge = {
+                      ...params,
+                      type: 'smoothstep',
+                      animated: true,
+                      style: { 
+                        stroke: theme === "light" ? '#6B7280' : '#6D28D9', 
+                        strokeWidth: 2 
+                      },
+                      markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        color: theme === "light" ? '#6B7280' : '#6D28D9'
+                      }
+                    };
+                    setCustomEdges((eds) => addEdge(newEdge, eds));
+                  }}
+                >
+                  <div className={`grid-background ${theme === "light" ? "grid-background--light" : "grid-background--dark"}`} />
+                  <Controls className="react-flow__controls" />
+                </ReactFlow>
+              </div>
+
+              <DialogFooter className={cn(
+                "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-6 border-t",
+                theme === "light" ? "border-gray-200" : "border-purple-500/20"
+              )}>
                 <div className="flex justify-end gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setIsCustomWorkflowDialogOpen(false)}
-                    className={getThemeClasses(theme).buttonOutline}
+                    className={cn(
+                      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground h-10 px-4 py-2",
+                      theme === "light"
+                        ? "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200"
+                        : "bg-[#2D1B69]/30 hover:bg-[#2D1B69] text-purple-200 border border-purple-500/20"
+                    )}
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSaveWorkflow}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className={cn(
+                      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2",
+                      "bg-purple-600 hover:bg-purple-700 text-white"
+                    )}
                     disabled={!customWorkflowName.trim()}
                   >
                     Create Workflow

@@ -90,7 +90,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="flex flex-col gap-3">
       {recommendations.map((recommendation) => {
         const config = typeConfig[recommendation.type];
         const Icon = config.icon;
@@ -99,75 +99,77 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
           <Card
             key={recommendation.id}
             className={cn(
-              "border transition-colors",
+              "border transition-colors w-full",
               isDark
                 ? "border-purple-500/20 hover:bg-purple-500/5"
                 : "border-gray-200 bg-white",
               !isDark && config.lightHoverBg
             )}
           >
-            <CardContent className="p-3">
+            <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className={cn(
-                  "p-1.5 rounded-lg",
+                  "p-2 rounded-lg",
                   isDark 
                     ? `bg-gradient-to-br ${config.bgGradient}`
                     : `bg-gradient-to-br ${config.lightBgGradient}`
                 )}>
                   <Icon className={cn(
-                    "h-4 w-4",
+                    "h-5 w-5",
                     isDark ? config.iconColor : config.lightIconColor
                   )} />
                 </div>
-                <div className="flex-1 min-w-0 flex justify-between items-start gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-start gap-1.5">
-                      <h3 className={cn(
-                        "font-medium text-sm leading-tight truncate",
-                        isDark ? "text-gray-100" : "text-gray-800"
-                      )}>
-                        {recommendation.description}
-                      </h3>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className={cn(
-                              "h-3.5 w-3.5 flex-shrink-0",
-                              isDark ? "text-purple-400" : "text-purple-600"
-                            )} />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className={cn(
-                              "text-sm",
-                              isDark ? "text-gray-100" : "text-gray-800"
-                            )}>{recommendation.details}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-1.5">
+                        <h3 className={cn(
+                          "font-medium text-sm leading-tight",
+                          isDark ? "text-gray-100" : "text-gray-800"
+                        )}>
+                          {recommendation.description}
+                        </h3>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className={cn(
+                                "h-4 w-4 flex-shrink-0 mt-0.5",
+                                isDark ? "text-purple-400" : "text-purple-600"
+                              )} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className={cn(
+                                "text-sm max-w-xs",
+                                isDark ? "text-gray-100" : "text-gray-800"
+                              )}>{recommendation.details}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <span className={cn(
+                          "text-sm",
+                          isDark ? "text-purple-300" : "text-gray-600"
+                        )}>{recommendation.impact.metric}:</span>
+                        <span className={cn(
+                          "text-sm font-medium",
+                          getImpactColor(recommendation.impact.direction, isDark)
+                        )}>{recommendation.impact.value}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className={cn(
-                        "text-xs",
-                        isDark ? "text-purple-300" : "text-gray-600"
-                      )}>{recommendation.impact.metric}:</span>
-                      <span className={cn(
-                        "text-xs font-medium",
-                        getImpactColor(recommendation.impact.direction, isDark)
-                      )}>{recommendation.impact.value}</span>
-                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => onApplyRecommendation(recommendation)}
+                      className={cn(
+                        "px-3 py-1.5 h-auto text-sm font-medium whitespace-nowrap",
+                        isDark
+                          ? "bg-purple-500/20 hover:bg-purple-500/30 text-purple-200"
+                          : `bg-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-50 hover:bg-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-100 text-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-700`
+                      )}
+                    >
+                      Apply
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => onApplyRecommendation(recommendation)}
-                    className={cn(
-                      "px-2.5 py-1.5 h-auto text-xs font-medium",
-                      isDark
-                        ? "bg-purple-500/20 hover:bg-purple-500/30 text-purple-200"
-                        : `bg-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-50 hover:bg-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-100 text-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-700`
-                    )}
-                  >
-                    Apply
-                  </Button>
                 </div>
               </div>
             </CardContent>

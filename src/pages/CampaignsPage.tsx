@@ -15,7 +15,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
-interface CampaignState {
+export interface CampaignState {
   id: number;
   name: string;
   status: "active" | "paused" | "completed";
@@ -25,17 +25,44 @@ interface CampaignState {
     clicks: number;
     conversions: number;
     spend: number;
+    adCost: number;
+    costPerConversion: number;
+    ctr: number;
+    conversionRate: number;
+    costPerClick: number;
+    cpm: number;
+    previousPeriod: {
+      adCost: number;
+      costPerConversion: number;
+      clicks: number;
+      impressions: number;
+      conversions: number;
+    };
     target: {
       conversions: number;
     };
   };
-  isExpanded?: boolean;
   performanceData: Array<{
     date: string;
     impressions: number;
     clicks: number;
     costPerConversion: number;
+    cost: number;
+    ctr: number;
+    cpc: number;
+    cpm: number;
   }>;
+  updateLogs: Array<{
+    id: string;
+    type: "budget" | "demographics" | "content";
+    description: string;
+    timestamp: string;
+    changes: {
+      from: string;
+      to: string;
+    };
+  }>;
+  isExpanded?: boolean;
 }
 
 type CampaignAction =
@@ -54,14 +81,14 @@ const campaignReducer = (
       }));
     case "UPDATE_CAMPAIGN":
       return state.map((campaign) =>
-        campaign.id === action.campaign.id ? action.campaign : campaign
+        campaign.id === action.campaign.id ? { ...campaign, ...action.campaign } : campaign
       );
     default:
       return state;
   }
 };
 
-const initialCampaigns = [
+const initialCampaigns: CampaignState[] = [
   {
     id: 1,
     name: "Summer Sale 2024",
@@ -72,6 +99,19 @@ const initialCampaigns = [
       clicks: 25000,
       conversions: 1250,
       spend: 5000,
+      adCost: 5000,
+      costPerConversion: 4,
+      ctr: 2.4,
+      conversionRate: 0.05,
+      costPerClick: 0.2,
+      cpm: 40,
+      previousPeriod: {
+        adCost: 4000,
+        costPerConversion: 3.5,
+        clicks: 20000,
+        impressions: 100000,
+        conversions: 1000,
+      },
       target: {
         conversions: 2000,
       },
@@ -82,31 +122,83 @@ const initialCampaigns = [
         impressions: 15000,
         clicks: 3000,
         costPerConversion: 45,
+        cost: 5000,
+        ctr: 2.4,
+        cpc: 1.67,
+        cpm: 33.33
       },
       {
         date: "2024-01-02",
         impressions: 16000,
         clicks: 3200,
         costPerConversion: 43,
+        cost: 5200,
+        ctr: 2.5,
+        cpc: 1.63,
+        cpm: 32.50
       },
       {
         date: "2024-01-03",
         impressions: 17500,
         clicks: 3500,
         costPerConversion: 41,
+        cost: 5600,
+        ctr: 2.6,
+        cpc: 1.60,
+        cpm: 32.00
       },
       {
         date: "2024-01-04",
         impressions: 18000,
         clicks: 3600,
         costPerConversion: 40,
+        cost: 5800,
+        ctr: 2.7,
+        cpc: 1.61,
+        cpm: 32.22
       },
       {
         date: "2024-01-05",
         impressions: 19000,
         clicks: 3800,
         costPerConversion: 38,
+        cost: 6000,
+        ctr: 2.8,
+        cpc: 1.58,
+        cpm: 31.58
       },
+    ],
+    updateLogs: [
+      {
+        id: "log1",
+        type: "budget",
+        description: "Daily budget increased",
+        timestamp: "2 hours ago",
+        changes: {
+          from: "$100/day",
+          to: "$120/day"
+        }
+      },
+      {
+        id: "log2",
+        type: "demographics",
+        description: "Target audience expanded",
+        timestamp: "1 day ago",
+        changes: {
+          from: "18-24, Male",
+          to: "18-24, 25-34, Male"
+        }
+      },
+      {
+        id: "log3",
+        type: "content",
+        description: "Ad creative updated",
+        timestamp: "3 days ago",
+        changes: {
+          from: "Image Ad #1",
+          to: "Video Ad #2"
+        }
+      }
     ],
     isExpanded: false,
   },
@@ -120,6 +212,19 @@ const initialCampaigns = [
       clicks: 15000,
       conversions: 500,
       spend: 3000,
+      adCost: 3000,
+      costPerConversion: 6,
+      ctr: 2.0,
+      conversionRate: 0.033,
+      costPerClick: 0.2,
+      cpm: 40,
+      previousPeriod: {
+        adCost: 2500,
+        costPerConversion: 5.5,
+        clicks: 12500,
+        impressions: 62500,
+        conversions: 400,
+      },
       target: {
         conversions: 2500,
       },
@@ -130,31 +235,73 @@ const initialCampaigns = [
         impressions: 20000,
         clicks: 4000,
         costPerConversion: 55,
+        cost: 3000,
+        ctr: 2.0,
+        cpc: 0.75,
+        cpm: 15.00
       },
       {
         date: "2024-01-02",
         impressions: 22000,
         clicks: 4400,
         costPerConversion: 53,
+        cost: 3200,
+        ctr: 2.1,
+        cpc: 0.73,
+        cpm: 14.55
       },
       {
         date: "2024-01-03",
         impressions: 24000,
         clicks: 4800,
         costPerConversion: 52,
+        cost: 3400,
+        ctr: 2.2,
+        cpc: 0.71,
+        cpm: 14.17
       },
       {
         date: "2024-01-04",
         impressions: 26000,
         clicks: 5200,
         costPerConversion: 51,
+        cost: 3600,
+        ctr: 2.3,
+        cpc: 0.69,
+        cpm: 13.85
       },
       {
         date: "2024-01-05",
         impressions: 28000,
         clicks: 5600,
         costPerConversion: 50,
+        cost: 3800,
+        ctr: 2.4,
+        cpc: 0.68,
+        cpm: 13.57
       },
+    ],
+    updateLogs: [
+      {
+        id: "log4",
+        type: "content",
+        description: "Campaign paused for optimization",
+        timestamp: "5 hours ago",
+        changes: {
+          from: "Active",
+          to: "Paused"
+        }
+      },
+      {
+        id: "log5",
+        type: "demographics",
+        description: "Location targeting refined",
+        timestamp: "2 days ago",
+        changes: {
+          from: "All regions",
+          to: "High-performing regions only"
+        }
+      }
     ],
     isExpanded: false,
   },
@@ -168,6 +315,19 @@ const initialCampaigns = [
       clicks: 10000,
       conversions: 100,
       spend: 8000,
+      adCost: 8000,
+      costPerConversion: 80,
+      ctr: 2.0,
+      conversionRate: 0.01,
+      costPerClick: 0.8,
+      cpm: 160,
+      previousPeriod: {
+        adCost: 7000,
+        costPerConversion: 70,
+        clicks: 9000,
+        impressions: 45000,
+        conversions: 90,
+      },
       target: {
         conversions: 150,
       },
@@ -178,32 +338,53 @@ const initialCampaigns = [
         impressions: 8000,
         clicks: 1600,
         costPerConversion: 85,
+        cost: 8000,
+        ctr: 2.0,
+        cpc: 5.0,
+        cpm: 100.00
       },
       {
         date: "2024-01-02",
         impressions: 9000,
         clicks: 1800,
         costPerConversion: 83,
+        cost: 8200,
+        ctr: 2.1,
+        cpc: 4.89,
+        cpm: 91.11
       },
       {
         date: "2024-01-03",
         impressions: 10000,
         clicks: 2000,
         costPerConversion: 82,
+        cost: 8400,
+        ctr: 2.2,
+        cpc: 4.78,
+        cpm: 84.00
       },
       {
         date: "2024-01-04",
         impressions: 11000,
         clicks: 2200,
         costPerConversion: 81,
+        cost: 8600,
+        ctr: 2.3,
+        cpc: 4.67,
+        cpm: 78.18
       },
       {
         date: "2024-01-05",
         impressions: 12000,
         clicks: 2400,
         costPerConversion: 80,
+        cost: 8800,
+        ctr: 2.4,
+        cpc: 4.56,
+        cpm: 73.33
       },
     ],
+    updateLogs: [],
     isExpanded: false,
   },
 ];
@@ -283,35 +464,30 @@ const CampaignsPage: React.FC = () => {
           metrics: {
             ...campaign.metrics,
             spend: campaign.metrics.spend * 1.2,
-            impressions: campaign.metrics.impressions * 1.15,
-            clicks: campaign.metrics.clicks * 1.15,
-            conversions: campaign.metrics.conversions * 1.15,
           },
-        };
-        break;
-      case "content":
-        changes = {
-          metrics: {
-            ...campaign.metrics,
-            clicks: campaign.metrics.clicks * 1.1,
-            conversions: campaign.metrics.conversions * 1.1,
-          },
-        };
-        break;
-      case "demographics":
-        changes = {
-          metrics: {
-            ...campaign.metrics,
-            impressions: campaign.metrics.impressions * 1.25,
-            clicks: campaign.metrics.clicks * 1.2,
-          },
+          updateLogs: [
+            ...campaign.updateLogs,
+            {
+              id: Date.now().toString(),
+              type: "budget" as const,
+              description: "Increased budget by 20%",
+              timestamp: new Date().toISOString(),
+              changes: {
+                from: campaign.metrics.spend.toString(),
+                to: (campaign.metrics.spend * 1.2).toString(),
+              },
+            },
+          ],
         };
         break;
     }
 
     dispatch({
       type: "UPDATE_CAMPAIGN",
-      campaign: { ...campaign, ...changes },
+      campaign: {
+        ...campaign,
+        ...changes
+      } as CampaignState
     });
   };
 

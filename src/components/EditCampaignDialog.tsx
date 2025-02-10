@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
+import { CampaignState } from '../pages/CampaignsPage';
 
 interface EditCampaignDialogProps {
   open: boolean;
@@ -14,11 +15,8 @@ interface EditCampaignDialogProps {
   campaignId: string;
   campaignName: string;
   campaignStatus: string;
-  metrics: {
-    target: {
-      conversions: number;
-    };
-  };
+  metrics: CampaignState['metrics'];
+  onEditCampaign: (id: number, updates: Partial<CampaignState>) => void;
 }
 
 const EditCampaignDialog = ({ 
@@ -27,7 +25,8 @@ const EditCampaignDialog = ({
   campaignId,
   campaignName,
   campaignStatus,
-  metrics
+  metrics,
+  onEditCampaign
 }: EditCampaignDialogProps) => {
   const { theme } = useTheme();
   const [formData, setFormData] = useState({
@@ -38,8 +37,16 @@ const EditCampaignDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to update the campaign
-    console.log('Updating campaign:', formData);
+    onEditCampaign(parseInt(campaignId), {
+      name: formData.name,
+      status: formData.status as CampaignState['status'],
+      metrics: {
+        ...metrics,
+        target: {
+          conversions: formData.targetConversions
+        }
+      }
+    });
     onOpenChange(false);
   };
 

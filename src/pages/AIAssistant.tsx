@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Bot, Send, LineChart, Database, Sparkles, Users2, TrendingUp, BarChart2, PieChart } from "lucide-react";
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, defs, linearGradient, stop } from 'recharts';
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area } from 'recharts';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
@@ -78,7 +78,7 @@ export default function AIAssistant() {
       isDark ? "bg-[#0F0B1E]" : "bg-gray-50"
     )}>
       <div className={cn(
-        "flex flex-col h-[calc(100vh-2rem)] p-4 max-w-6xl mx-auto",
+        "flex flex-col h-[calc(100vh-2rem)] p-4 max-w-[95%] mx-auto",
         isDark ? "bg-transparent" : "bg-white rounded-lg shadow-sm"
       )}>
         {/* Header */}
@@ -111,7 +111,7 @@ export default function AIAssistant() {
             : "bg-white border-gray-200"
         )}>
           <CardContent className="p-4 h-full flex flex-col overflow-y-auto custom-scrollbar">
-            <style jsx>{`
+            <style>{`
               .custom-scrollbar::-webkit-scrollbar {
                 width: 8px;
                 height: 8px;
@@ -162,16 +162,16 @@ export default function AIAssistant() {
                     />
                     <ExampleCard
                       icon={BarChart2}
-                      title="ROAS"
-                      description="List my top performing campaigns with respect to ROAS."
-                      onClick={() => handleExampleClick("List my top performing campaigns with respect to ROAS.")}
+                      title="Campaign Performance"
+                      description="Which ad placements are generating the highest click-through rates?"
+                      onClick={() => handleExampleClick("Which ad placements are generating the highest click-through rates?")}
                       isDark={isDark}
                     />
                     <ExampleCard
                       icon={PieChart}
-                      title="Budget Split"
-                      description="What should be my ideal budget distribution?"
-                      onClick={() => handleExampleClick("What should be my ideal budget distribution?")}
+                      title="Creative Analysis"
+                      description="What are the best performing ad creatives across my campaigns?"
+                      onClick={() => handleExampleClick("What are the best performing ad creatives across my campaigns?")}
                       isDark={isDark}
                     />
                   </div>

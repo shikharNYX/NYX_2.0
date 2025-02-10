@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 interface EditCampaignDialogProps {
   open: boolean;
@@ -27,6 +29,7 @@ const EditCampaignDialog = ({
   campaignStatus,
   metrics
 }: EditCampaignDialogProps) => {
+  const { theme } = useTheme();
   const [formData, setFormData] = useState({
     name: campaignName,
     status: campaignStatus,
@@ -42,50 +45,89 @@ const EditCampaignDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-indigo-950/95 border-purple-500/20">
+      <DialogContent className={cn(
+        "sm:max-w-[500px] border",
+        theme === 'dark'
+          ? "bg-indigo-950/95 border-purple-500/20"
+          : "bg-white border-gray-200"
+      )}>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-purple-100">Edit Campaign</DialogTitle>
-          <DialogDescription className="text-purple-300">
+          <DialogTitle className={cn(
+            "text-2xl font-semibold",
+            theme === 'dark' ? "text-purple-100" : "text-gray-900"
+          )}>Edit Campaign</DialogTitle>
+          <DialogDescription className={cn(
+            theme === 'dark' ? "text-purple-300" : "text-gray-500"
+          )}>
             Make changes to your campaign settings here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-purple-100">Campaign Name</Label>
+              <Label htmlFor="name" className={cn(
+                "text-sm font-medium",
+                theme === 'dark' ? "text-purple-100" : "text-gray-700"
+              )}>Campaign Name</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="bg-indigo-950/50 border-purple-500/20 text-purple-100"
+                className={cn(
+                  "border",
+                  theme === 'dark'
+                    ? "bg-indigo-950/50 border-purple-500/20 text-purple-100"
+                    : "bg-white border-gray-200 text-gray-900"
+                )}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-sm font-medium text-purple-100">Status</Label>
+              <Label htmlFor="status" className={cn(
+                "text-sm font-medium",
+                theme === 'dark' ? "text-purple-100" : "text-gray-700"
+              )}>Status</Label>
               <Select 
                 value={formData.status}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
               >
-                <SelectTrigger className="bg-indigo-950/50 border-purple-500/20 text-purple-100">
+                <SelectTrigger className={cn(
+                  "border",
+                  theme === 'dark'
+                    ? "bg-indigo-950/50 border-purple-500/20 text-purple-100"
+                    : "bg-white border-gray-200 text-gray-900"
+                )}>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent className="bg-indigo-950/95 border-purple-500/20">
-                  <SelectItem value="active" className="text-purple-100">Active</SelectItem>
-                  <SelectItem value="paused" className="text-purple-100">Paused</SelectItem>
-                  <SelectItem value="completed" className="text-purple-100">Completed</SelectItem>
+                <SelectContent className={cn(
+                  "border",
+                  theme === 'dark'
+                    ? "bg-indigo-950/95 border-purple-500/20"
+                    : "bg-white border-gray-200"
+                )}>
+                  <SelectItem value="active" className={theme === 'dark' ? "text-purple-100" : "text-gray-900"}>Active</SelectItem>
+                  <SelectItem value="paused" className={theme === 'dark' ? "text-purple-100" : "text-gray-900"}>Paused</SelectItem>
+                  <SelectItem value="completed" className={theme === 'dark' ? "text-purple-100" : "text-gray-900"}>Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="targetConversions" className="text-sm font-medium text-purple-100">Target Conversions</Label>
+              <Label htmlFor="targetConversions" className={cn(
+                "text-sm font-medium",
+                theme === 'dark' ? "text-purple-100" : "text-gray-700"
+              )}>Target Conversions</Label>
               <Input
                 id="targetConversions"
                 type="number"
                 value={formData.targetConversions}
                 onChange={(e) => setFormData(prev => ({ ...prev, targetConversions: parseInt(e.target.value) }))}
-                className="bg-indigo-950/50 border-purple-500/20 text-purple-100"
+                className={cn(
+                  "border",
+                  theme === 'dark'
+                    ? "bg-indigo-950/50 border-purple-500/20 text-purple-100"
+                    : "bg-white border-gray-200 text-gray-900"
+                )}
               />
             </div>
           </div>
@@ -95,15 +137,24 @@ const EditCampaignDialog = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-purple-500/20 text-purple-100 hover:bg-purple-500/10"
+              className={cn(
+                "border",
+                theme === 'dark'
+                  ? "border-purple-500/20 text-purple-100 hover:bg-purple-500/10"
+                  : "border-gray-200 text-gray-700 hover:bg-gray-100"
+              )}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-purple-600 text-white hover:bg-purple-700"
+              className={cn(
+                theme === 'dark'
+                  ? "bg-purple-600 text-white hover:bg-purple-700"
+                  : "bg-purple-600 text-white hover:bg-purple-700"
+              )}
             >
-              Save Changes
+              Save changes
             </Button>
           </DialogFooter>
         </form>

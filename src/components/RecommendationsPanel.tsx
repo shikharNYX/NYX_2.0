@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSignIcon, Users2Icon, LayoutTemplateIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 export interface Recommendation {
   id: string;
@@ -34,33 +36,54 @@ const typeConfig = {
     icon: DollarSignIcon,
     gradient: "from-emerald-400 to-emerald-600",
     bgGradient: "from-emerald-400/10 to-emerald-600/10",
-    iconColor: "text-emerald-400"
+    iconColor: "text-emerald-400",
+    lightGradient: "from-emerald-50 to-emerald-100",
+    lightBgGradient: "from-emerald-50 to-emerald-100",
+    lightIconColor: "text-emerald-600",
+    lightHoverBg: "hover:bg-emerald-50"
   },
   demographics: {
     icon: Users2Icon,
     gradient: "from-blue-400 to-blue-600",
     bgGradient: "from-blue-400/10 to-blue-600/10",
-    iconColor: "text-blue-400"
+    iconColor: "text-blue-400",
+    lightGradient: "from-blue-50 to-blue-100",
+    lightBgGradient: "from-blue-50 to-blue-100",
+    lightIconColor: "text-blue-600",
+    lightHoverBg: "hover:bg-blue-50"
   },
   content: {
     icon: LayoutTemplateIcon,
     gradient: "from-purple-400 to-purple-600",
     bgGradient: "from-purple-400/10 to-purple-600/10",
-    iconColor: "text-purple-400"
+    iconColor: "text-purple-400",
+    lightGradient: "from-purple-50 to-purple-100",
+    lightBgGradient: "from-purple-50 to-purple-100",
+    lightIconColor: "text-purple-600",
+    lightHoverBg: "hover:bg-purple-50"
   }
 };
 
-const getImpactColor = (direction: 'up' | 'down') => {
-  return direction === 'up' ? 'text-green-400' : 'text-red-400';
+const getImpactColor = (direction: 'up' | 'down', isDark: boolean) => {
+  if (isDark) {
+    return direction === 'up' ? 'text-green-400' : 'text-red-400';
+  }
+  return direction === 'up' ? 'text-green-600' : 'text-red-600';
 };
 
 export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   recommendations,
   onApplyRecommendation,
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   if (recommendations.length === 0) {
     return (
-      <div className="text-center text-purple-300 py-4">
+      <div className={cn(
+        "text-center py-4",
+        isDark ? "text-purple-300" : "text-gray-500"
+      )}>
         No recommendations available at this time.
       </div>
     );
@@ -75,41 +98,73 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
         return (
           <Card
             key={recommendation.id}
-            className="border border-purple-500/20 hover:bg-purple-500/5 transition-colors"
+            className={cn(
+              "border transition-colors",
+              isDark
+                ? "border-purple-500/20 hover:bg-purple-500/5"
+                : "border-gray-200 bg-white",
+              !isDark && config.lightHoverBg
+            )}
           >
             <CardContent className="p-3">
               <div className="flex items-start gap-3">
-                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${config.bgGradient}`}>
-                  <Icon className={`h-4 w-4 ${config.iconColor}`} />
+                <div className={cn(
+                  "p-1.5 rounded-lg",
+                  isDark 
+                    ? `bg-gradient-to-br ${config.bgGradient}`
+                    : `bg-gradient-to-br ${config.lightBgGradient}`
+                )}>
+                  <Icon className={cn(
+                    "h-4 w-4",
+                    isDark ? config.iconColor : config.lightIconColor
+                  )} />
                 </div>
                 <div className="flex-1 min-w-0 flex justify-between items-start gap-3">
                   <div className="min-w-0">
                     <div className="flex items-start gap-1.5">
-                      <h3 className="font-medium text-gray-100 text-sm leading-tight truncate">
+                      <h3 className={cn(
+                        "font-medium text-sm leading-tight truncate",
+                        isDark ? "text-gray-100" : "text-gray-800"
+                      )}>
                         {recommendation.description}
                       </h3>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Info className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
+                            <Info className={cn(
+                              "h-3.5 w-3.5 flex-shrink-0",
+                              isDark ? "text-purple-400" : "text-purple-600"
+                            )} />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-sm">{recommendation.details}</p>
+                            <p className={cn(
+                              "text-sm",
+                              isDark ? "text-gray-100" : "text-gray-800"
+                            )}>{recommendation.details}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <div className="mt-1 text-xs">
-                      <span className="text-purple-300">Impact: </span>
-                      <span className={`bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`}>
-                        {recommendation.impact.metric}: {recommendation.impact.value}
-                      </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={cn(
+                        "text-xs",
+                        isDark ? "text-purple-300" : "text-gray-600"
+                      )}>{recommendation.impact.metric}:</span>
+                      <span className={cn(
+                        "text-xs font-medium",
+                        getImpactColor(recommendation.impact.direction, isDark)
+                      )}>{recommendation.impact.value}</span>
                     </div>
                   </div>
                   <Button
-                    onClick={() => onApplyRecommendation(recommendation)}
-                    className="h-[2.75rem] px-3 text-xs bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white border-0 whitespace-nowrap"
                     size="sm"
+                    onClick={() => onApplyRecommendation(recommendation)}
+                    className={cn(
+                      "px-2.5 py-1.5 h-auto text-xs font-medium",
+                      isDark
+                        ? "bg-purple-500/20 hover:bg-purple-500/30 text-purple-200"
+                        : `bg-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-50 hover:bg-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-100 text-${recommendation.type === 'budget' ? 'emerald' : recommendation.type === 'demographics' ? 'blue' : 'purple'}-700`
+                    )}
                   >
                     Apply
                   </Button>

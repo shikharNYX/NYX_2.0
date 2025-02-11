@@ -152,6 +152,8 @@ const AgentCustomization = () => {
           )}>
             AI Agents
           </Link>
+
+          
           <ChevronRight className="w-4 h-4" />
           <span className={theme === "dark" ? "text-purple-100" : "text-gray-900"}>
             Customize Campaign Strategist

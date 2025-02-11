@@ -55,6 +55,8 @@ import {
   Legend,
 } from "recharts";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useTheme } from "next-themes";
+import cn from "classnames";
 
 interface DataPoint {
   name: string;
@@ -330,6 +332,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   dateRange,
   platform,
 }) => {
+  const { theme } = useTheme();
   const [timeRange, setTimeRange] = useState("daily");
 
   const {
@@ -402,15 +405,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   }
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]">
+    <div className={cn(
+      "p-4 min-h-screen",
+      theme === 'dark' 
+        ? "bg-gradient-to-b from-[#0F0720] via-[#1A0B2E] to-[#0F0720]"
+        : "bg-white"
+    )}>
       <div className="max-w-[1600px] mx-auto space-y-6">
         {/* Performance Behavior Section */}
         <div className="space-y-6">
           <div className="mb-6">
-            <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+            <h2 className={cn(
+              "text-xl font-semibold",
+              theme === 'dark'
+                ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+                : "text-gray-900"
+            )}>
               Performance Behavior
             </h2>
-            <p className="text-purple-300/80 text-sm mt-1">
+            <p className={cn(
+              "text-sm mt-1",
+              theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+            )}>
               Performance metrics and trends
             </p>
           </div>
@@ -419,21 +435,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             {(metricData.data?.metrics || accountMetrics).map((metric) => (
               <Card
                 key={metric.label}
-                className="bg-[#2A1A4D]/90 border-[#6D28D9]/30 text-left w-full"
+                className={cn(
+                  "text-left w-full",
+                  theme === 'dark'
+                    ? "bg-[#2A1A4D]/90 border-[#6D28D9]/30"
+                    : "bg-white border-gray-200"
+                )}
               >
                 <div className="p-3">
-                  <p className="text-sm font-medium text-purple-300/80 mb-1">
+                  <p className={cn(
+                    "text-sm font-medium mb-1",
+                    theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+                  )}>
                     {metric.label}
                   </p>
                   <div className="flex items-baseline justify-between">
-                    <p className="text-purple-200 text-base font-semibold">
+                    <p className={cn(
+                      "text-base font-semibold",
+                      theme === 'dark' ? "text-purple-200" : "text-gray-900"
+                    )}>
                       {formatLargeNumber(metric.value?.toFixed(2))}
                     </p>
-                    <p
-                      className={`text-sm ${
-                        metric.change > 0 ? "text-green-400" : "text-red-400"
-                      }`}
-                    >
+                    <p className={`text-sm ${metric.change > 0 ? "text-green-600" : "text-red-600"}`}>
                       {metric.change > 0 ? "+" : ""}
                       {metric.change}%
                     </p>
@@ -443,52 +466,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             ))}
           </div>
           {/* Chart Section */}
-          <div className="bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-6">
-            <div className="flex justify-end mb-6">
-              {/* <div className="flex gap-2">
-                <button
-                  className={`px-3 py-1.5 text-sm rounded-lg ${
-                    timeRange === "daily"
-                      ? "bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] text-white"
-                      : "bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50"
-                  } transition-all duration-200`}
-                  onClick={() => setTimeRange("daily")}
-                >
-                  Daily
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-sm rounded-lg ${
-                    timeRange === "weekly"
-                      ? "bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] text-white"
-                      : "bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50"
-                  } transition-all duration-200`}
-                  onClick={() => setTimeRange("weekly")}
-                >
-                  Weekly
-                </button>{" "}
-                <button
-                  className={`px-3 py-1.5 text-sm rounded-lg ${
-                    timeRange === "monthly"
-                      ? "bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] text-white"
-                      : "bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50"
-                  } transition-all duration-200`}
-                  onClick={() => setTimeRange("monthly")}
-                >
-                  Monthly
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-sm rounded-lg ${
-                    timeRange === "yearly"
-                      ? "bg-gradient-to-r from-[#6D28D9] to-[#4F46E5] text-white"
-                      : "bg-[#2D1B69]/30 text-purple-300 hover:bg-[#2D1B69]/50"
-                  } transition-all duration-200`}
-                  onClick={() => setTimeRange("yearly")}
-                >
-                  Yearly
-                </button>
-              </div> */}
-            </div>
-
+          <div className={cn(
+            "rounded-lg border p-6",
+            theme === 'dark'
+              ? "bg-[#2D1B69]/30 border-[#6D28D9]/20"
+              : "bg-white border-gray-200"
+          )}>
             <div className="h-[300px] w-full">
               {isLoading ? (
                 <Loader className="m-auto h-full" />
@@ -501,32 +484,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     {gradientDefs}
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#6D28D9"
+                      stroke={theme === 'dark' ? "#6D28D9" : "#e5e7eb"}
                       vertical={false}
                       opacity={0.1}
                     />
                     <XAxis
                       dataKey="period"
-                      axisLine={{ stroke: "#6D28D9" }}
-                      tickLine={{ stroke: "#6D28D9" }}
-                      tick={{ fill: "#E9D5FF", fontSize: 12 }}
+                      axisLine={{ stroke: theme === 'dark' ? "#6D28D9" : "#e5e7eb" }}
+                      tickLine={{ stroke: theme === 'dark' ? "#6D28D9" : "#e5e7eb" }}
+                      tick={{ fill: theme === 'dark' ? "#E9D5FF" : "#374151", fontSize: 12 }}
                     />
                     <YAxis
-                      axisLine={{ stroke: "#6D28D9" }}
-                      tickLine={{ stroke: "#6D28D9" }}
-                      tick={{ fill: "#E9D5FF", fontSize: 12 }}
+                      axisLine={{ stroke: theme === 'dark' ? "#6D28D9" : "#e5e7eb" }}
+                      tickLine={{ stroke: theme === 'dark' ? "#6D28D9" : "#e5e7eb" }}
+                      tick={{ fill: theme === 'dark' ? "#E9D5FF" : "#374151", fontSize: 12 }}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "rgba(45, 27, 105, 0.9)",
+                        backgroundColor: theme === 'dark' ? "rgba(45, 27, 105, 0.9)" : "rgba(255, 255, 255, 0.9)",
                         backdropFilter: "blur(8px)",
-                        border: "1px solid rgba(109, 40, 217, 0.2)",
+                        border: theme === 'dark' ? "1px solid rgba(109, 40, 217, 0.2)" : "1px solid rgba(229, 231, 235, 1)",
                         borderRadius: "12px",
-                        boxShadow:
-                          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                       }}
-                      labelStyle={{ color: "#E9D5FF" }}
-                      itemStyle={{ color: "#E9D5FF" }}
+                      labelStyle={{ color: theme === 'dark' ? "#E9D5FF" : "#374151" }}
+                      itemStyle={{ color: theme === 'dark' ? "#E9D5FF" : "#374151" }}
                     />
                     <Legend
                       verticalAlign="bottom"
@@ -546,12 +528,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                   toggleMetric(entry.dataKey);
                                 }
                               }}
-                              className={`relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 group ${
-                                typeof entry.dataKey === "string" &&
-                                selectedMetrics.includes(entry.dataKey)
-                                  ? "bg-[#2D1B69]/50 text-white"
-                                  : "text-purple-300/60 hover:text-purple-300"
-                              }`}
+                              className={cn(
+                                "relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 group",
+                                typeof entry.dataKey === "string" && selectedMetrics.includes(entry.dataKey)
+                                  ? theme === 'dark'
+                                    ? "bg-[#2D1B69]/50 text-white"
+                                    : "bg-indigo-50 text-indigo-900"
+                                  : theme === 'dark'
+                                    ? "text-purple-300/60 hover:text-purple-300"
+                                    : "text-gray-500 hover:text-gray-900"
+                              )}
                             >
                               {(typeof entry.dataKey !== "string" ||
                                 !selectedMetrics.includes(entry.dataKey)) && (
@@ -602,7 +588,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         dot={{ fill: metric.color, r: 4, strokeWidth: 2 }}
                         activeDot={{
                           r: 6,
-                          fill: "#E9D5FF",
+                          fill: theme === 'dark' ? "#E9D5FF" : "#374151",
                           stroke: metric.color,
                           strokeWidth: 2,
                         }}
@@ -619,12 +605,22 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         {/* Funnel and Segment Performance Row */}
         <div className="grid grid-cols-2 gap-6">
           {/* Funnel View */}
-          <Card className="bg-[#1A0B2E] border-[#6D28D9]/20">
+          <Card className={cn(
+            "p-6",
+            theme === 'dark' 
+              ? "bg-[#1A0B2E] border-[#6D28D9]/20" 
+              : "bg-white border-gray-200"
+          )}>
             <CardHeader>
-              <CardTitle className="text-purple-100">
+              <CardTitle className={cn(
+                "text-lg font-semibold",
+                theme === 'dark' ? "text-purple-100" : "text-gray-900"
+              )}>
                 Conversion Funnel
               </CardTitle>
-              <CardDescription className="text-purple-300">
+              <CardDescription className={cn(
+                theme === 'dark' ? "text-purple-300" : "text-gray-600"
+              )}>
                 Track your funnel conversion rates
               </CardDescription>
             </CardHeader>
@@ -636,17 +632,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </Card>
 
           {/* Segment Performance */}
-          <Card className="p-6 bg-[#1A0B2E]/80 border-[#6D28D9]/20 backdrop-blur-xl">
+          <Card className={cn(
+            "p-6",
+            theme === 'dark' ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20 backdrop-blur-xl" : "bg-white border-gray-200"
+          )}>
             <div className="mb-6">
-              <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+              <h2 className={cn(
+                "text-xl font-semibold",
+                theme === 'dark'
+                  ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+                  : "text-gray-900"
+              )}>
                 Segment Performance
               </h2>
-              <p className="text-purple-300/80 text-sm mt-1">
+              <p className={cn(
+                "text-sm mt-1",
+                theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+              )}>
                 Detailed performance breakdown
               </p>
             </div>
 
-            <div className="rounded-lg overflow-hidden border border-[#6D28D9]/20">
+            <div className={cn(
+              "rounded-lg overflow-hidden border",
+              theme === 'dark' ? "border-[#6D28D9]/20" : "border-gray-200"
+            )}>
               <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
                 <style
                   dangerouslySetInnerHTML={{
@@ -670,22 +680,40 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   }}
                 />
                 <Table>
-                  <TableHeader className="sticky top-0 bg-[#1A0B2E] z-10">
-                    <TableRow className="border-[#6D28D9]/20">
-                      <TableHead className="w-[280px]">
+                  <TableHeader className={cn(
+                    "sticky top-0",
+                    theme === 'dark' ? "bg-[#1A0B2E] z-10" : "bg-white z-10"
+                  )}>
+                    <TableRow className={cn(
+                      "border-[#6D28D9]/20",
+                      theme === 'dark' ? "border-[#6D28D9]/20" : "border-gray-200"
+                    )}>
+                      <TableHead className={cn(
+                        "w-[280px]",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         <Select
                           value={selectedSegment}
                           onValueChange={setSelectedSegment}
                         >
-                          <SelectTrigger className="w-full bg-transparent text-purple-300 border-0 hover:bg-[#2D1B69]/50 transition-all duration-200 -ml-2">
+                          <SelectTrigger className={cn(
+                            "w-full bg-transparent text-purple-300 border-0 hover:bg-[#2D1B69]/50 transition-all duration-200 -ml-2",
+                            theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                          )}>
                             <SelectValue placeholder="Select Segment" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300">
+                          <SelectContent className={cn(
+                            "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300",
+                            theme === 'dark' ? "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300" : "bg-white border-gray-200 text-gray-600"
+                          )}>
                             {segmentOptions.map((option) => (
                               <SelectItem
                                 key={option.value}
                                 value={option.value}
-                                className="hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300"
+                                className={cn(
+                                  "hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300",
+                                  theme === 'dark' ? "hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300" : "hover:bg-gray-100 focus:bg-gray-100 text-gray-600"
+                                )}
                               >
                                 {option.label}
                               </SelectItem>
@@ -693,20 +721,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           </SelectContent>
                         </Select>
                       </TableHead>
-                      <TableHead className="w-[220px]">
+                      <TableHead className={cn(
+                        "w-[220px]",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         <Select
                           value={selectedMetric}
                           onValueChange={setSelectedMetric}
                         >
-                          <SelectTrigger className="w-full bg-transparent text-purple-300 border-0 hover:bg-[#2D1B69]/50 transition-all duration-200 -ml-2">
+                          <SelectTrigger className={cn(
+                            "w-full bg-transparent text-purple-300 border-0 hover:bg-[#2D1B69]/50 transition-all duration-200 -ml-2",
+                            theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                          )}>
                             <SelectValue placeholder="Select Metric" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300">
+                          <SelectContent className={cn(
+                            "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300",
+                            theme === 'dark' ? "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300" : "bg-white border-gray-200 text-gray-600"
+                          )}>
                             {metricOptions.map((option) => (
                               <SelectItem
                                 key={option.value}
                                 value={option.value}
-                                className="hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300"
+                                className={cn(
+                                  "hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300",
+                                  theme === 'dark' ? "hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300" : "hover:bg-gray-100 focus:bg-gray-100 text-gray-600"
+                                )}
                               >
                                 {option.label}
                               </SelectItem>
@@ -714,7 +754,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           </SelectContent>
                         </Select>
                       </TableHead>
-                      <TableHead className="w-[150px] text-purple-300 font-medium">
+                      <TableHead className={cn(
+                        "w-[150px] text-purple-300 font-medium",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         Change
                       </TableHead>
                     </TableRow>
@@ -724,12 +767,21 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       (item) => (
                         <TableRow
                           key={item.label}
-                          className="border-[#6D28D9]/20 hover:bg-[#2D1B69]/40"
+                          className={cn(
+                            "border-[#6D28D9]/20 hover:bg-[#2D1B69]/40",
+                            theme === 'dark' ? "border-[#6D28D9]/20 hover:bg-[#2D1B69]/40" : "border-gray-200 hover:bg-gray-100"
+                          )}
                         >
-                          <TableCell className="font-medium text-purple-300">
+                          <TableCell className={cn(
+                            "font-medium text-purple-300",
+                            theme === 'dark' ? "font-medium text-purple-300" : "font-medium text-gray-600"
+                          )}>
                             {item.label}
                           </TableCell>
-                          <TableCell className="text-purple-300">
+                          <TableCell className={cn(
+                            "text-purple-300",
+                            theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                          )}>
                             {selectedMetric
                               ? formatValue(
                                   item[selectedMetric],
@@ -742,8 +794,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                               <span
                                 className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                                   item.change >= 0
-                                    ? "bg-emerald-500/10 text-emerald-400"
-                                    : "bg-rose-500/10 text-rose-400"
+                                    ? theme === 'dark' ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-500/10 text-emerald-400"
+                                    : theme === 'dark' ? "bg-rose-500/10 text-rose-400" : "bg-rose-500/10 text-rose-400"
                                 }`}
                               >
                                 {item.change >= 0 ? "↑" : "↓"}{" "}
@@ -762,38 +814,67 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Regional Performance Section */}
-        <Card className="p-6 bg-[#1A0B2E]/80 border-[#6D28D9]/20 backdrop-blur-xl">
+        <Card className={cn(
+          "p-6",
+          theme === 'dark' ? "bg-[#1A0B2E]/80 border-[#6D28D9]/20 backdrop-blur-xl" : "bg-white border-gray-200"
+        )}>
           <div className="mb-6">
-            <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400">
+            <h2 className={cn(
+              "text-xl font-semibold",
+              theme === 'dark'
+                ? "bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400"
+                : "text-gray-900"
+            )}>
               Regional Performance
             </h2>
-            <p className="text-purple-300/80 text-sm mt-1">
+            <p className={cn(
+              "text-sm mt-1",
+              theme === 'dark' ? "text-purple-300/80" : "text-gray-600"
+            )}>
               Performance metrics by region
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
-            <div className="min-h-[400px] bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-4">
+            <div className={cn(
+              "min-h-[400px] bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-4",
+              theme === 'dark' ? "bg-[#2D1B69]/30 border-[#6D28D9]/20" : "bg-white border-gray-200"
+            )}>
               <MapComponent />
             </div>
-            <div className="min-h-[400px] bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-4">
+            <div className={cn(
+              "min-h-[400px] bg-[#2D1B69]/30 rounded-lg border border-[#6D28D9]/20 p-4",
+              theme === 'dark' ? "bg-[#2D1B69]/30 border-[#6D28D9]/20" : "bg-white border-gray-200"
+            )}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-purple-300">
+                <h3 className={cn(
+                  "text-sm font-medium",
+                  theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                )}>
                   Region Details
                 </h3>
                 <Select
                   value={selectedMetric}
                   onValueChange={setSelectedMetric}
                 >
-                  <SelectTrigger className="w-[180px] bg-[#2D1B69]/30 text-purple-300 border-[#6D28D9]/20 hover:bg-[#2D1B69]/50 transition-all duration-200">
+                  <SelectTrigger className={cn(
+                    "w-[180px] bg-[#2D1B69]/30 text-purple-300 border-[#6D28D9]/20 hover:bg-[#2D1B69]/50 transition-all duration-200",
+                    theme === 'dark' ? "bg-[#2D1B69]/30 text-purple-300 border-[#6D28D9]/20" : "bg-white text-gray-600 border-gray-200"
+                  )}>
                     <SelectValue placeholder="Select Metric" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300">
+                  <SelectContent className={cn(
+                    "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300",
+                    theme === 'dark' ? "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300" : "bg-white border-gray-200 text-gray-600"
+                  )}>
                     {metricOptions.map((option) => (
                       <SelectItem
                         key={option.value}
                         value={option.value}
-                        className="hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300"
+                        className={cn(
+                          "hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300",
+                          theme === 'dark' ? "hover:bg-[#6D28D9]/20 focus:bg-[#6D28D9]/20 text-purple-300" : "hover:bg-gray-100 focus:bg-gray-100 text-gray-600"
+                        )}
                       >
                         {option.label}
                       </SelectItem>
@@ -827,17 +908,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                 <Table>
                   <TableHeader>
-                    <TableRow className="hover:bg-[#2D1B69]/40 border-[#6D28D9]/20">
-                      <TableHead className="text-purple-300 font-medium">
+                    <TableRow className={cn(
+                      "hover:bg-[#2D1B69]/40 border-[#6D28D9]/20",
+                      theme === 'dark' ? "hover:bg-[#2D1B69]/40 border-[#6D28D9]/20" : "hover:bg-gray-100 border-gray-200"
+                    )}>
+                      <TableHead className={cn(
+                        "text-purple-300 font-medium",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         Region
                       </TableHead>
-                      <TableHead className="text-purple-300 font-medium">
+                      <TableHead className={cn(
+                        "text-purple-300 font-medium",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         Value
                       </TableHead>
-                      <TableHead className="text-purple-300 font-medium">
+                      <TableHead className={cn(
+                        "text-purple-300 font-medium",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         Distribution
                       </TableHead>
-                      <TableHead className="text-purple-300 font-medium">
+                      <TableHead className={cn(
+                        "text-purple-300 font-medium",
+                        theme === 'dark' ? "text-purple-300 font-medium" : "text-gray-600 font-medium"
+                      )}>
                         Change
                       </TableHead>
                     </TableRow>
@@ -847,12 +943,21 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       (item) => (
                         <TableRow
                           key={item.label}
-                          className="hover:bg-[#2D1B69]/40 border-[#6D28D9]/20"
+                          className={cn(
+                            "hover:bg-[#2D1B69]/40 border-[#6D28D9]/20",
+                            theme === 'dark' ? "hover:bg-[#2D1B69]/40 border-[#6D28D9]/20" : "hover:bg-gray-100 border-gray-200"
+                          )}
                         >
-                          <TableCell className="font-medium text-purple-300">
+                          <TableCell className={cn(
+                            "font-medium text-purple-300",
+                            theme === 'dark' ? "font-medium text-purple-300" : "font-medium text-gray-600"
+                          )}>
                             {item.label}
                           </TableCell>
-                          <TableCell className="text-purple-300">
+                          <TableCell className={cn(
+                            "text-purple-300",
+                            theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                          )}>
                             {selectedMetric
                               ? formatValue(
                                   item.data?.[selectedMetric].value,
@@ -860,9 +965,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                                 )
                               : "Select a metric"}
                           </TableCell>
-                          <TableCell className="text-purple-300">
+                          <TableCell className={cn(
+                            "text-purple-300",
+                            theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                          )}>
                             <div className="flex items-center justify-end gap-2">
-                              <div className="w-16 bg-[#2D1B69]/30 h-1.5 rounded-full overflow-hidden">
+                              <div className={cn(
+                                "w-16 bg-[#2D1B69]/30 h-1.5 rounded-full overflow-hidden",
+                                theme === 'dark' ? "bg-[#2D1B69]/30" : "bg-gray-100"
+                              )}>
                                 <div
                                   className="h-full bg-gradient-to-r from-[#6D28D9] to-[#9F5BF0]"
                                   style={{
@@ -873,12 +984,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                               <span>{item.data?.[selectedMetric].perc}%</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-purple-300">
+                          <TableCell className={cn(
+                            "text-purple-300",
+                            theme === 'dark' ? "text-purple-300" : "text-gray-600"
+                          )}>
                             <span
                               className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                                 item.data?.[selectedMetric].change >= 0
-                                  ? "bg-emerald-500/10 text-emerald-400"
-                                  : "bg-rose-500/10 text-rose-400"
+                                  ? theme === 'dark' ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-500/10 text-emerald-400"
+                                  : theme === 'dark' ? "bg-rose-500/10 text-rose-400" : "bg-rose-500/10 text-rose-400"
                               }`}
                             >
                               {item.data?.[selectedMetric].change >= 0

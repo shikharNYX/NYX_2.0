@@ -8,6 +8,8 @@ import React from 'react';
 import { VectorMap } from '@react-jvectormap/core';
 import { worldMill } from '@react-jvectormap/world';
 import { regionData } from './RegionTable';
+import { useTheme } from 'next-themes';
+import cn from 'classnames';
 
 const formatNumber = (num: number): string => {
   return num >= 1000 ? `${(num / 1000).toFixed(1)}K` : num.toString();
@@ -23,6 +25,8 @@ const regionMapping = {
 };
 
 export const MapComponent = () => {
+  const { theme } = useTheme();
+
   const getRegionColor = (countryCode: string) => {
     const region = Object.entries(regionMapping).find(([_, countries]) => 
       countries.includes(countryCode)
@@ -49,7 +53,15 @@ export const MapComponent = () => {
 
     // Update the tooltip element's HTML content
     el.innerHTML = `
-      <div style="background-color: rgba(74, 20, 140, 0.9); color: white; padding: 10px; border-radius: 5px; font-family: Arial, sans-serif;">
+      <div style="
+        background-color: ${theme === 'dark' ? 'rgba(74, 20, 140, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
+        color: ${theme === 'dark' ? 'white' : '#374151'};
+        padding: 10px;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+        border: 1px solid ${theme === 'dark' ? 'rgba(74, 20, 140, 0.9)' : 'rgba(229, 231, 235, 1)'};
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      ">
         <div style="font-size: 14px; margin-bottom: 5px;">${region}</div>
         <div style="font-size: 12px; opacity: 0.9;">Distribution: ${(data.distribution * 100).toFixed(1)}%</div>
         <div style="font-size: 12px; opacity: 0.9;">Impressions: ${formatNumber(data.impressions)}</div>
@@ -62,7 +74,12 @@ export const MapComponent = () => {
   };
 
   return (
-    <div className="relative w-full h-[400px] bg-[#2D1B4B] rounded-lg p-4 border border-[#4A148C]">
+    <div className={cn(
+      "relative w-full h-[400px] rounded-lg p-4 border",
+      theme === 'dark'
+        ? "bg-[#2D1B4B] border-[#4A148C]"
+        : "bg-white border-gray-200"
+    )}>
       <div className="w-full h-full">
         <VectorMap
           map={worldMill}
@@ -71,12 +88,12 @@ export const MapComponent = () => {
           onRegionTipShow={handleRegionTipShow}
           regionStyle={{
             initial: {
-              fill: '#1A0A2B',
-              stroke: '#4A148C',
+              fill: theme === 'dark' ? '#1A0A2B' : '#F3F4F6',
+              stroke: theme === 'dark' ? '#4A148C' : '#E5E7EB',
               strokeWidth: 0.5,
             },
             hover: {
-              fill: '#6D28D9',
+              fill: theme === 'dark' ? '#6D28D9' : '#818CF8',
               fillOpacity: 0.8
             }
           }}
@@ -85,30 +102,18 @@ export const MapComponent = () => {
               values: Object.fromEntries(
                 Object.values(regionMapping).flat().map(code => [
                   code,
-                  getRegionColor(code) // This now returns a numeric value
+                  getRegionColor(code)
                 ])
               ),
+              scale: theme === 'dark' 
+                ? ['#2D1B69', '#4C1D95', '#6D28D9']
+                : ['#C7D2FE', '#818CF8', '#4F46E5'],
               attribute: 'fill'
             }]
           }}
           className="w-full h-full"
         />
       </div>
-
-      {/* <div className="absolute bottom-4 left-4 flex gap-4 text-sm bg-[#4A148C]/90 backdrop-blur-sm p-2 rounded-lg border border-[#4A148C] custom-scrollbar">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(109, 40, 217, 0.2)' }}></div>
-          <span className="text-gray-300">Low</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(109, 40, 217, 0.5)' }}></div>
-          <span className="text-gray-300">Medium</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(109, 40, 217, 0.8)' }}></div>
-          <span className="text-gray-300">High</span>
-        </div>
-      </div> */}
     </div>
   );
 };

@@ -19,6 +19,10 @@ interface Recommendation {
   type: RecommendationType;
 }
 
+interface RecommendationsProps {
+  buttonClassName?: string;
+}
+
 const recommendations: Recommendation[] = [
   {
     id: 1,
@@ -64,7 +68,7 @@ const typeConfig = {
   }
 };
 
-export function Recommendations() {
+export function Recommendations({ buttonClassName }: RecommendationsProps) {
   const { theme } = useTheme();
   const handleApply = (id: number) => {
     // TODO: Implement recommendation application logic
@@ -136,12 +140,7 @@ export function Recommendations() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className={cn(
-                    "text-xs",
-                    theme === 'dark'
-                      ? "border-[#6D28D9]/20 hover:bg-[#2D1B69]/50 text-purple-200"
-                      : "border-gray-200 hover:bg-gray-100 text-gray-700"
-                  )}
+                  className={buttonClassName}
                   onClick={() => handleApply(rec.id)}
                 >
                   Apply

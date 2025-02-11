@@ -12,12 +12,11 @@ import {
   Legend
 } from 'recharts';
 import { DollarSignIcon, MousePointerClickIcon, TargetIcon } from "lucide-react";
-import { MetricCard } from "@/components/MetricCard";
-import { PerformanceChart } from "@/components/PerformanceChart";
 import { PlatformSpendChart } from "@/components/PlatformSpendChart";
 import { TopCampaignsTable } from "@/components/TopCampaignsTable";
 import { useTheme } from 'next-themes';
 import cn from 'classnames';
+import { AIAgentStats } from "@/components/AIAgentStats";
 
 const performanceData = [
   { name: 'Jan', spend: 12000, ctr: 2.4, conversions: 450 },
@@ -318,7 +317,12 @@ export default function Dashboard() {
 
             {/* Recommendations */}
             <div className="col-span-2">
-              <Recommendations />
+              <Recommendations buttonClassName={cn(
+                "px-3 py-1.5 h-auto text-sm font-medium whitespace-nowrap",
+                theme === 'dark'
+                  ? "bg-purple-500/20 hover:bg-purple-500/30 text-purple-200"
+                  : "bg-purple-50 hover:bg-purple-100 text-purple-700"
+              )} />
             </div>
           </div>
 
@@ -330,6 +334,11 @@ export default function Dashboard() {
             <div className="lg:col-span-2">
               <TopCampaignsTable />
             </div>
+          </div>
+
+          {/* AI Agent Performance Stats */}
+          <div className="mt-6">
+            <AIAgentStats />
           </div>
         </div>
       </div>

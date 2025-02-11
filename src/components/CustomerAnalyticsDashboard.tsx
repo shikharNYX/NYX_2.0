@@ -333,8 +333,7 @@ const gradientDefs = (
 const getRetentionColor = (value: number | null) => {
   if (value === null) return "bg-transparent";
 
-  // Using CSS custom properties for the gradient colors
-  const intensity = Math.max(0.1, value / 100);
+  // Using consistent purple shades for both themes
   if (value >= 90) {
     return "bg-[#6D28D9] bg-opacity-90";
   } else if (value >= 80) {
@@ -366,17 +365,35 @@ const formatCurrency = (num: number): string => {
 };
 
 const MiniBar = ({ value, total }: { value: number; total: number }) => {
+  const { theme } = useTheme();
   const percentage = (value / total) * 100;
   return (
     <div className="flex items-center justify-end gap-3">
-      <span className="text-purple-300 min-w-[40px] text-right">{value}</span>
-      <div className="w-24 h-1 bg-[#6D28D9]/20 rounded">
+      <span
+        className={cn(
+          "min-w-[40px] text-right",
+          theme === "dark" ? "text-purple-200" : "text-purple-700"
+        )}
+      >
+        {value}
+      </span>
+      <div
+        className={cn(
+          "w-24 h-1 rounded",
+          theme === "dark" ? "bg-[#6D28D9]/20" : "bg-purple-100"
+        )}
+      >
         <div
           className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded"
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <span className="text-xs text-purple-400 min-w-[45px]">
+      <span
+        className={cn(
+          "text-xs min-w-[45px]",
+          theme === "dark" ? "text-purple-300" : "text-purple-600"
+        )}
+      >
         {percentage.toFixed(1)}%
       </span>
     </div>
@@ -786,13 +803,13 @@ const CustomerAnalyticsDashboard = () => {
                             <stop
                               offset="0%"
                               stopColor={
-                                theme === "dark" ? "#c084fc" : "#6366F1"
+                                theme === "dark" ? "#c084fc" : "#9333EA"
                               }
                             />
                             <stop
                               offset="100%"
                               stopColor={
-                                theme === "dark" ? "#9333ea" : "#4F46E5"
+                                theme === "dark" ? "#9333ea" : "#6D28D9"
                               }
                             />
                           </linearGradient>
@@ -806,13 +823,13 @@ const CustomerAnalyticsDashboard = () => {
                             <stop
                               offset="0%"
                               stopColor={
-                                theme === "dark" ? "#818cf8" : "#6366F1"
+                                theme === "dark" ? "#818cf8" : "#4F46E5"
                               }
                             />
                             <stop
                               offset="100%"
                               stopColor={
-                                theme === "dark" ? "#4f46e5" : "#4F46E5"
+                                theme === "dark" ? "#4f46e5" : "#3730A3"
                               }
                             />
                           </linearGradient>
@@ -897,10 +914,10 @@ const CustomerAnalyticsDashboard = () => {
                                         entry.payload.name === "New Customers"
                                           ? theme === "dark"
                                             ? "linear-gradient(to bottom, #c084fc, #9333ea)"
-                                            : "linear-gradient(to bottom, #6366F1, #4F46E5)"
+                                            : "linear-gradient(to bottom, #9333EA, #6D28D9)"
                                           : theme === "dark"
                                           ? "linear-gradient(to bottom, #818cf8, #4f46e5)"
-                                          : "linear-gradient(to bottom, #6366F1, #4F46E5)",
+                                          : "linear-gradient(to bottom, #4F46E5, #3730A3)",
                                     }}
                                   />
                                   <span
@@ -981,20 +998,37 @@ const CustomerAnalyticsDashboard = () => {
                       >
                         <TableHead
                           className={cn(
-                            "font-medium",
+                            "h-12 px-4 text-left align-middle font-medium",
                             theme === "dark"
-                              ? "text-purple-300"
-                              : "text-gray-900"
+                              ? "bg-[#2D1B69]/40 border-r border-[#6D28D9]/20 text-purple-300"
+                              : "border-r border-gray-200 text-gray-900",
+                            "w-[220px]"
                           )}
                         >
-                          Segment
+                          <Select value={selectedSegment} onValueChange={setSelectedSegment}>
+                            <SelectTrigger
+                              className={cn(
+                                "flex items-center justify-between rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full h-8",
+                                theme === "dark"
+                                  ? "bg-[#1A0B2E] border-[#6D28D9]/20 text-purple-300"
+                                  : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                              )}
+                            >
+                              <SelectValue placeholder="Select segment" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {mockData.customerDistribution.segments.map((segment) => (
+                                <SelectItem key={segment.value} value={segment.value}>
+                                  {segment.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableHead>
                         <TableHead
                           className={cn(
                             "text-right font-medium",
-                            theme === "dark"
-                              ? "text-purple-300"
-                              : "text-gray-900"
+                            theme === "dark" ? "text-purple-300" : "text-gray-900"
                           )}
                         >
                           Distribution
@@ -1002,9 +1036,7 @@ const CustomerAnalyticsDashboard = () => {
                         <TableHead
                           className={cn(
                             "text-right font-medium",
-                            theme === "dark"
-                              ? "text-purple-300"
-                              : "text-gray-900"
+                            theme === "dark" ? "text-purple-300" : "text-gray-900"
                           )}
                         >
                           Growth
@@ -1129,7 +1161,6 @@ const CustomerAnalyticsDashboard = () => {
                         >
                           <TableHead
                             className={cn(
-                              "w-[220px]",
                               theme === "dark"
                                 ? "text-purple-300 sticky left-0 bg-[#1A0B2E] z-10"
                                 : "text-gray-900 sticky left-0 bg-white z-10"
@@ -1256,21 +1287,19 @@ const CustomerAnalyticsDashboard = () => {
                                 key={dayIndex}
                                 className={cn(
                                   "text-right relative",
-                                  theme === "dark"
-                                    ? getRetentionColor(value)
-                                    : value > 0
-                                    ? "bg-green-50"
-                                    : ""
+                                  getRetentionColor(value)
                                 )}
                               >
                                 <span
                                   className={cn(
                                     "relative z-10",
-                                    theme === "dark"
-                                      ? "text-purple-100 font-medium"
-                                      : value > 0
-                                      ? "text-green-700 font-medium"
-                                      : "text-gray-900 font-medium"
+                                    value > 0
+                                      ? theme === "dark"
+                                        ? "text-purple-100 font-medium"
+                                        : "text-purple-900 font-medium"
+                                      : theme === "dark"
+                                      ? "text-purple-300"
+                                      : "text-gray-900"
                                   )}
                                 >
                                   {value ? `${value.toFixed(1)}%` : "-"}

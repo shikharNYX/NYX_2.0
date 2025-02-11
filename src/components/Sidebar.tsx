@@ -197,7 +197,7 @@ export function Sidebar() {
                 className={cn(
                   theme === 'dark'
                     ? "bg-purple-900/50 data-[state=checked]:bg-purple-600"
-                    : "bg-gray-200 data-[state=checked]:bg-gray-600"
+                    : "bg-slate-200 data-[state=checked]:bg-purple-500/80"
                 )}
               />
             </DropdownMenuItem>

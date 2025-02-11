@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Bot, CheckCircle2, Circle } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 interface Step {
   id: number;
@@ -41,14 +43,22 @@ export function RecommendationProgress({
   currentStep,
   onComplete
 }: RecommendationProgressProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   React.useEffect(() => {
     if (currentStep > steps.length) {
       onComplete();
     }
-  }, [currentStep, onComplete]);
+  }, [currentStep, onComplete, steps.length]);
 
   return (
-    <div className="relative p-6 bg-[#1A0B2E]/95 rounded-lg border border-[#6D28D9]/20">
+    <div className={cn(
+      "relative p-6 rounded-lg border",
+      isDark 
+        ? "bg-[#1A0B2E]/95 border-[#6D28D9]/20"
+        : "bg-white border-gray-200"
+    )}>
       {/* AI Agent Animation */}
       <div className="absolute top-0 right-0 p-4">
         <motion.div
@@ -61,9 +71,15 @@ export function RecommendationProgress({
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="bg-purple-500/10 rounded-full p-3"
+          className={cn(
+            "rounded-full p-3",
+            isDark ? "bg-purple-500/10" : "bg-purple-100"
+          )}
         >
-          <Bot className="h-6 w-6 text-purple-400" />
+          <Bot className={cn(
+            "h-6 w-6",
+            isDark ? "text-purple-400" : "text-purple-600"
+          )} />
         </motion.div>
       </div>
 
@@ -77,13 +93,19 @@ export function RecommendationProgress({
             <div key={step.id} className="relative">
               {/* Progress Line */}
               {step.id !== steps.length && (
-                <div className="absolute left-[15px] top-[30px] w-[2px] h-[calc(100%+24px)] bg-[#6D28D9]/20">
+                <div className={cn(
+                  "absolute left-[15px] top-[30px] w-[2px] h-[calc(100%+24px)]",
+                  isDark ? "bg-[#6D28D9]/20" : "bg-gray-200"
+                )}>
                   {(isCompleted || isActive) && (
                     <motion.div
                       initial={{ height: 0 }}
                       animate={{ height: isCompleted ? "100%" : "50%" }}
                       transition={{ duration: 0.5 }}
-                      className="absolute top-0 left-0 w-full bg-purple-500"
+                      className={cn(
+                        "absolute top-0 left-0 w-full",
+                        isDark ? "bg-purple-500" : "bg-purple-600"
+                      )}
                     />
                   )}
                 </div>
@@ -98,44 +120,31 @@ export function RecommendationProgress({
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", duration: 0.5 }}
                     >
-                      <CheckCircle2 className="h-8 w-8 text-purple-500" />
-                    </motion.div>
-                  ) : isActive ? (
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.2, 1],
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                      className="bg-purple-500/10 rounded-full p-1"
-                    >
-                      <Circle className="h-6 w-6 text-purple-400" />
+                      <CheckCircle2 className={cn(
+                        "h-8 w-8",
+                        isDark ? "text-purple-500" : "text-purple-600"
+                      )} />
                     </motion.div>
                   ) : (
-                    <Circle className="h-8 w-8 text-[#6D28D9]/40" />
+                    <Circle className={cn(
+                      "h-8 w-8",
+                      isActive
+                        ? isDark ? "text-purple-400" : "text-purple-600"
+                        : isDark ? "text-purple-500/20" : "text-gray-300"
+                    )} />
                   )}
                 </div>
 
                 {/* Step Content */}
-                <div className={`flex-1 ${isActive ? 'opacity-100' : 'opacity-60'}`}>
-                  <motion.h4
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="text-lg font-medium text-purple-200"
-                  >
-                    {step.title}
-                  </motion.h4>
-                  <motion.p
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-sm text-purple-300/80"
-                  >
-                    {step.description}
-                  </motion.p>
+                <div>
+                  <h4 className={cn(
+                    "font-medium",
+                    isDark ? "text-purple-200" : "text-gray-900"
+                  )}>{step.title}</h4>
+                  <p className={cn(
+                    "text-sm",
+                    isDark ? "text-purple-300/80" : "text-gray-600"
+                  )}>{step.description}</p>
                 </div>
               </div>
             </div>

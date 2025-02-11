@@ -6,6 +6,8 @@
 
 import React from 'react';
 import { ResponsiveFunnel, FunnelDatum } from '@nivo/funnel';
+import { useTheme } from 'next-themes';
+import cn from 'classnames';
 
 interface FunnelData extends FunnelDatum {
   id: string;
@@ -23,17 +25,28 @@ interface TooltipProps {
 }
 
 const CustomTooltip = ({ part }: TooltipProps): JSX.Element | null => {
+  const { theme } = useTheme();
   if (!part || !part.data) return null;
 
   const maxValue = part.data.maxValue || part.data.value; 
   const percentage = ((part.data.value / maxValue) * 100).toFixed(1);
 
   return (
-    <div className="bg-[#1A0B2E] text-white p-3 rounded-lg shadow-lg border border-[#4A148C]">
+    <div className={cn(
+      "p-3 rounded-lg shadow-lg border",
+      theme === 'dark'
+        ? "bg-[#1A0B2E] text-white border-[#4A148C]"
+        : "bg-white text-gray-900 border-gray-200"
+    )}>
       <p className="font-bold text-base">
         {part.data.label} ({percentage}%)
       </p>
-      <p className="text-sm mt-1">Value: {part.data.value.toLocaleString()}</p>
+      <p className={cn(
+        "text-sm mt-1",
+        theme === 'dark' ? "text-gray-200" : "text-gray-600"
+      )}>
+        Value: {part.data.value.toLocaleString()}
+      </p>
     </div>
   );
 };
@@ -49,7 +62,7 @@ interface FunnelChartProps {
   spacing?: number;
   borderWidth?: number;
   enableLabel?: boolean;
-  labelColor?: string;
+  labelColor?;
   labelPosition?: 'inside' | 'outside';
   theme?: any;
   defs?: any[];
@@ -74,7 +87,7 @@ const FunnelChart = ({
       label: "Conversions",
     },
   ],
-  colors = ["#2D1B69", "#4C1D95", "#6D28D9"],
+  colors,
   margin = { top: 40, right: 20, bottom: 20, left: 20 },
   direction = 'horizontal',
   interpolation = 'smooth',
@@ -87,53 +100,99 @@ const FunnelChart = ({
   spacing = 4,
   borderWidth = 0,
   enableLabel = true,
-  labelColor = "#E9D5FF",
+  labelColor,
   labelPosition = "inside",
-  theme = {
-    labels: {
-      text: {
-        fontSize: 14,
-        fill: "#E9D5FF",
-        fontWeight: 600,
-      },
-    },
-  },
-  defs = [
-    {
-      id: "gradient1",
-      type: "linearGradient",
-      colors: [
-        { offset: 0, color: "#2D1B69" },
-        { offset: 100, color: "#4C1D95" },
-      ],
-    },
-    {
-      id: "gradient2",
-      type: "linearGradient",
-      colors: [
-        { offset: 0, color: "#4C1D95" },
-        { offset: 100, color: "#6D28D9" },
-      ],
-    },
-    {
-      id: "gradient3",
-      type: "linearGradient",
-      colors: [
-        { offset: 0, color: "#6D28D9" },
-        { offset: 100, color: "#8B5CF6" },
-      ],
-    },
-  ],
-  fill = [
+  theme: customTheme,
+  defs,
+  fill,
+}: FunnelChartProps): JSX.Element => {
+  const { theme } = useTheme();
+
+  const defaultColors = theme === 'dark' 
+    ? ["#2D1B69", "#4C1D95", "#6D28D9"]
+    : ["#4F46E5", "#6D28D9", "#8B5CF6"];
+
+  const defaultDefs = theme === 'dark' 
+    ? [
+        {
+          id: "gradient1",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#2D1B69" },
+            { offset: 100, color: "#4C1D95" },
+          ],
+        },
+        {
+          id: "gradient2",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#4C1D95" },
+            { offset: 100, color: "#6D28D9" },
+          ],
+        },
+        {
+          id: "gradient3",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#6D28D9" },
+            { offset: 100, color: "#8B5CF6" },
+          ],
+        },
+      ]
+    : [
+        {
+          id: "gradient1",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#4F46E5" },
+            { offset: 100, color: "#6D28D9" },
+          ],
+        },
+        {
+          id: "gradient2",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#6D28D9" },
+            { offset: 100, color: "#8B5CF6" },
+          ],
+        },
+        {
+          id: "gradient3",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#8B5CF6" },
+            { offset: 100, color: "#A78BFA" },
+          ],
+        },
+      ];
+
+  const defaultFill = [
     { match: { id: "Impressions" }, id: "gradient1" },
     { match: { id: "Clicks" }, id: "gradient2" },
     { match: { id: "Conversions" }, id: "gradient3" },
-  ],
-}: FunnelChartProps): JSX.Element => {
+  ];
+  
+  const chartTheme = {
+    labels: {
+      text: {
+        fontSize: 14,
+        fill: theme === 'dark' ? "#E9D5FF" : "#374151",
+        fontWeight: 600,
+      },
+    },
+    ...customTheme,
+  };
+
   return (
-    <div className="relative">
+    <div className={cn(
+      "relative",
+      theme === 'dark' ? "bg-[#1A0B2E]" : "bg-white"
+    )}>
       {/* Section Labels */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between px-10 text-sm text-purple-200 font-medium">
+      <div className={cn(
+        "absolute top-0 left-0 right-0 flex justify-between px-10 text-sm font-medium",
+        theme === 'dark' ? "text-purple-200" : "text-gray-600"
+      )}>
         <span>First Purchase</span>
         <span>Second Purchase</span>
         <span>Third+ Purchase</span>
@@ -145,18 +204,18 @@ const FunnelChart = ({
           data={data}
           margin={margin}
           direction={direction}
-          colors={colors}
+          colors={colors || defaultColors}
           interpolation={interpolation}
           valueFormat={valueFormat}
           shapeBlending={shapeBlending}
           spacing={spacing}
           borderWidth={borderWidth}
           enableLabel={enableLabel}
-          labelColor={labelColor}
+          labelColor={theme === 'dark' ? "#E9D5FF" : "#374151"}
           labelPosition={labelPosition}
-          theme={theme}
-          defs={defs}
-          fill={fill}
+          theme={chartTheme}
+          defs={defs || defaultDefs}
+          fill={fill || defaultFill}
           tooltip={CustomTooltip}
         />
       </div>

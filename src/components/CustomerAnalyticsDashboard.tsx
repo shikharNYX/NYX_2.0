@@ -464,46 +464,14 @@ const CustomerAnalyticsDashboard = () => {
   };
 
   const getSegmentData = () => {
-    switch (selectedSegment) {
-      case "demographics":
-        return mockData.customerDistribution.data.demographics.map((item) => ({
-          category: item.name,
-          distribution: item.value,
-          growth: Math.random() * 20 - 10,
-        }));
-      case "spending":
-        return mockData.customerDistribution.data.spending.map((item) => ({
-          category: item.name,
-          distribution: item.value,
-          growth: Math.random() * 20 - 10,
-        }));
-      case "lifetime":
-        return mockData.customerDistribution.data.lifetime.map((item) => ({
-          category: item.name,
-          distribution: item.value,
-          growth: Math.random() * 20 - 10,
-        }));
-      case "products":
-        return mockData.customerDistribution.data.products.map((item) => ({
-          category: item.name,
-          distribution: item.value,
-          growth: Math.random() * 20 - 10,
-        }));
-      case "channels":
-        return mockData.customerDistribution.data.channels.map((item) => ({
-          category: item.name,
-          distribution: item.value,
-          growth: Math.random() * 20 - 10,
-        }));
-      case "conversion":
-        return mockData.customerDistribution.data.conversion.map((item) => ({
-          category: item.name,
-          distribution: item.value,
-          growth: Math.random() * 20 - 10,
-        }));
-      default:
-        return [];
-    }
+    const data = mockData.customerDistribution.data[selectedSegment];
+    if (!data) return [];
+
+    return data.map((item) => ({
+      category: item.name,
+      distribution: item.value,
+      growth: Math.random() * 20 - 10,
+    }));
   };
 
   const segmentData = useMemo(() => getSegmentData(), [selectedSegment]);

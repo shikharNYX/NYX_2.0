@@ -1976,7 +1976,8 @@ const CustomerAnalyticsDashboard = () => {
                           color: theme === "dark" ? "#E9D5FF" : "#1E293B",
                           padding: "2px 0",
                         }}
-                        formatter={(value) => [`$${value}`, "CAC"]}
+                        //@ts-ignore
+                        formatter={(value) => [`$${value.toFixed(1)}`, "CAC"]}
                       />
                       <Line
                         name="Current Period"

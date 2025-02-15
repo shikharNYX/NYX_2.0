@@ -67,9 +67,78 @@ export default function AIAssistant() {
     }, 2000);
   };
 
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (!input.trim()) return;
+
+//     // Add user message
+//     setMessages((prev) => [...prev, { type: "user", content: input }]);
+
+//     // Clear input
+//     setInput("");
+
+//     // Show loading state
+//     setLoading(true);
+//     setMessages((prev) => [
+//       ...prev,
+//       {
+//         type: "assistant",
+//         content: "",
+//         loading: true,
+//       },
+//     ]);
+
+//     // WebSocket call
+//     const socket = new WebSocket(
+//       "wss://nyx-ai-api.test.nyx.today/nyx-ai-chatbot-agents/chat/2156545051397647"
+//     );
+
+//     // Payload to send
+//     const data = {
+//       user_query: input,
+//     };
+
+//     socket.onopen = () => {
+//       console.log("WebSocket connection established");
+//       socket.send(JSON.stringify(data)); // Send the user query payload
+//     };
+
+//     // Handle incoming messages from the WebSocket server
+//     socket.onmessage = (event) => {
+//       const serverResponse = JSON.parse(event.data); // Parse the response
+
+//       console.log("DATA", serverResponse);
+
+//       if (serverResponse.response) {
+//         setLoading(false);
+//         setMessages((prev) => {
+//           const newMessages = [...prev];
+//           newMessages[newMessages.length - 1] = {
+//             type: "assistant",
+//             content:
+//               "Based on historical performance data, here's how a 15% budget increase could affect your CTR:",
+//             chartData: mockCTRImpactData,
+//             explanation:
+//               "Analysis of the projected impact:\n\n• Current CTR: Average of 2.3%\n• Projected CTR: Expected to reach 3.1% (+35%)\n• Key Insight: The increased budget would allow for better ad placement and audience targeting, leading to higher engagement rates\n• Recommendation: Consider implementing the budget increase as the projected CTR shows consistent improvement over time.",
+//           };
+//           return newMessages;
+//         });
+//       }
+//     };
+
+//     socket.onerror = (error) => {
+//       setLoading(false);
+//       console.error("WebSocket error:", error);
+//     };
+
+//     // Handle WebSocket close event
+//     socket.onclose = () => {
+//       console.log("WebSocket connection closed");
+//     };
+//   };
+
   const handleExampleClick = (question: string) => {
     setInput(question);
-    handleSubmit(new Event('submit') as any);
   };
 
   return (

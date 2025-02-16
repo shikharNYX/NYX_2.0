@@ -107,12 +107,10 @@ export default function AIAssistant() {
       console.log("Data", serverResponse);
 
       if (serverResponse.final_response == true) {
-        
-
-        const formattedData = serverResponse.structured_data.x_values.map(
+        const formattedData = serverResponse?.structured_data?.x_values.map(
           (label, index) => ({
             name: label,
-            value: serverResponse.structured_data.y_values[index],
+            value: serverResponse?.structured_data?.y_values[index],
           })
         );
 
@@ -121,12 +119,10 @@ export default function AIAssistant() {
           const newMessages = [...prev];
           newMessages[newMessages.length - 1] = {
             type: "assistant",
-            content:
-              "Based on historical performance data, here's how a 15% budget increase could affect your CTR:",
+            content: "Result:",
             chartData: formattedData,
-            chartDetails: serverResponse.structured_data,
-            //chartData: mockCTRImpactData,
-            explanation: serverResponse.summary,
+            chartDetails: serverResponse?.structured_data,
+            explanation: serverResponse?.summary,
           };
           return newMessages;
         });

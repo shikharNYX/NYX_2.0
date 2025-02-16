@@ -5,24 +5,33 @@ import { Button } from "@/components/ui/button";
 import {
   Bot,
   Send,
-  LineChart,
-  Database,
   Sparkles,
   Users2,
   TrendingUp,
   BarChart2,
   PieChart,
 } from "lucide-react";
+// import {
+//   LineChart as RechartsLineChart,
+//   Line,
+//   XAxis,
+//   YAxis,
+//   CartesianGrid,
+//   Tooltip,
+//   Legend,
+//   ResponsiveContainer,
+//   Area,
+// } from "recharts";
 import {
-  LineChart as RechartsLineChart,
+  BarChart,
+  Bar,
+  LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  Area,
 } from "recharts";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -44,6 +53,7 @@ interface Message {
   loading?: boolean;
   chartData?: any;
   explanation?: string;
+  chartDetails?: any;
 }
 
 export default function AIAssistant() {
@@ -52,13 +62,6 @@ export default function AIAssistant() {
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === "dark";
-
-  const transformChartData = (data) => {
-    return data.x_values.map((campaign, index) => ({
-      name: campaign, // Campaign name (X-axis)
-      cpc: data.y_values[index], // Average CPC (Y-axis)
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,9 +107,14 @@ export default function AIAssistant() {
       console.log("Data", serverResponse);
 
       if (serverResponse.final_response == true) {
-        // const data = transformChartData(serverResponse.structured_data);
+        
 
-        // console.log("bar", data);
+        const formattedData = serverResponse.structured_data.x_values.map(
+          (label, index) => ({
+            name: label,
+            value: serverResponse.structured_data.y_values[index],
+          })
+        );
 
         setLoading(false);
         setMessages((prev) => {
@@ -115,8 +123,9 @@ export default function AIAssistant() {
             type: "assistant",
             content:
               "Based on historical performance data, here's how a 15% budget increase could affect your CTR:",
-            //chartData: data,
-            chartData: mockCTRImpactData,
+            chartData: formattedData,
+            chartDetails: serverResponse.structured_data,
+            //chartData: mockCTRImpactData,
             explanation: serverResponse.summary,
           };
           return newMessages;
@@ -343,140 +352,41 @@ export default function AIAssistant() {
                               )}
                             >
                               <ResponsiveContainer width="100%" height="100%">
-                                <RechartsLineChart data={message.chartData}>
-                                  <defs>
-                                    <linearGradient
-                                      id="currentGradient"
-                                      x1="0"
-                                      y1="0"
-                                      x2="0"
-                                      y2="1"
-                                    >
-                                      <stop
-                                        offset="0%"
-                                        stopColor={
-                                          isDark ? "#4F46E5" : "#6366F1"
-                                        }
-                                        stopOpacity={0.3}
-                                      />
-                                      <stop
-                                        offset="100%"
-                                        stopColor={
-                                          isDark ? "#4F46E5" : "#6366F1"
-                                        }
-                                        stopOpacity={0.1}
-                                      />
-                                    </linearGradient>
-                                    <linearGradient
-                                      id="projectedGradient"
-                                      x1="0"
-                                      y1="0"
-                                      x2="0"
-                                      y2="1"
-                                    >
-                                      <stop
-                                        offset="0%"
-                                        stopColor={
-                                          isDark ? "#818CF8" : "#A5B4FC"
-                                        }
-                                        stopOpacity={0.3}
-                                      />
-                                      <stop
-                                        offset="100%"
-                                        stopColor={
-                                          isDark ? "#818CF8" : "#A5B4FC"
-                                        }
-                                        stopOpacity={0.1}
-                                      />
-                                    </linearGradient>
-                                  </defs>
-                                  <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    stroke={isDark ? "#6D28D9" : "#E5E7EB"}
-                                    opacity={0.1}
-                                  />
-                                  <XAxis
-                                    dataKey="date"
-                                    stroke={isDark ? "#9CA3AF" : "#6B7280"}
-                                    fontSize={12}
-                                    tickFormatter={(value) =>
-                                      new Date(value).toLocaleDateString()
-                                    }
-                                  />
-                                  <YAxis
-                                    stroke={isDark ? "#9CA3AF" : "#6B7280"}
-                                    fontSize={12}
-                                    tickFormatter={(value) => `${value}%`}
-                                    label={{
-                                      value: "CTR",
-                                      angle: -90,
-                                      position: "insideLeft",
-                                      fill: isDark ? "#9CA3AF" : "#6B7280",
-                                    }}
-                                  />
-                                  <Tooltip
-                                    contentStyle={{
-                                      backgroundColor: isDark
-                                        ? "#2D1B69"
-                                        : "#F3F4F6",
-                                      border: isDark
-                                        ? "1px solid rgba(109, 40, 217, 0.2)"
-                                        : "1px solid rgba(209, 213, 219, 1)",
-                                      borderRadius: "8px",
-                                    }}
-                                    itemStyle={{
-                                      color: isDark ? "#E9D5FF" : "#374151",
-                                    }}
-                                    labelStyle={{
-                                      color: isDark ? "#E9D5FF" : "#374151",
-                                    }}
-                                    formatter={(value: number) => [
-                                      `${value}%`,
-                                      "CTR",
-                                    ]}
-                                  />
-                                  <Legend />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="currentCTR"
-                                    stroke={isDark ? "#4F46E5" : "#6366F1"}
-                                    strokeWidth={2}
-                                    dot={{
-                                      fill: isDark ? "#4F46E5" : "#6366F1",
-                                      r: 4,
-                                    }}
-                                    name="Current CTR"
-                                  />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="projectedCTR"
-                                    stroke={isDark ? "#818CF8" : "#A5B4FC"}
-                                    strokeWidth={2}
-                                    strokeDasharray="5 5"
-                                    dot={{
-                                      fill: isDark ? "#818CF8" : "#A5B4FC",
-                                      r: 4,
-                                    }}
-                                    name="Projected CTR"
-                                  />
-                                  <Area
-                                    type="monotone"
-                                    dataKey="currentCTR"
-                                    fill="url(#currentGradient)"
-                                    fillOpacity={0.3}
-                                    stroke="none"
-                                  />
-                                  <Area
-                                    type="monotone"
-                                    dataKey="projectedCTR"
-                                    fill="url(#projectedGradient)"
-                                    fillOpacity={0.3}
-                                    stroke="none"
-                                  />
-                                </RechartsLineChart>
+                                {message.chartDetails.plot_type === "bar" ? (
+                                  <BarChart data={message.chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="name"
+                                      tick={{ fontSize: 12 }}
+                                      interval={0}
+                                      angle={-20}
+                                      textAnchor="end"
+                                    />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar dataKey="value" fill="#8884d8" />
+                                  </BarChart>
+                                ) : (
+                                  <LineChart data={message.chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="name"
+                                      tick={{ fontSize: 12 }}
+                                      interval={0}
+                                      angle={-20}
+                                      textAnchor="end"
+                                    />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="value"
+                                      stroke="#8884d8"
+                                      strokeWidth={2}
+                                    />
+                                  </LineChart>
+                                )}
                               </ResponsiveContainer>
-
-                              
                             </div>
                           )}
                           {message.explanation && (

@@ -341,7 +341,7 @@ export default function AIAssistant() {
                           {message.chartData && (
                             <div
                               className={cn(
-                                "mt-4 h-[300px] p-4 rounded-lg",
+                                " h-[400px] p-4 rounded-lg",
                                 isDark
                                   ? "bg-[#1A0B2E]"
                                   : "bg-white border border-gray-200"
@@ -359,7 +359,17 @@ export default function AIAssistant() {
                                       textAnchor="end"
                                     />
                                     <YAxis />
-                                    <Tooltip />
+                                    <Tooltip
+                                      contentStyle={{
+                                        backgroundColor: isDark
+                                          ? "#1A0B2E"
+                                          : "white",
+                                        border: isDark
+                                          ? "none"
+                                          : "1px solid #E5E7EB",
+                                        color: isDark ? "white" : "black",
+                                      }}
+                                    />
                                     <Bar dataKey="value" fill="#8884d8" />
                                   </BarChart>
                                 ) : (
@@ -373,7 +383,17 @@ export default function AIAssistant() {
                                       textAnchor="end"
                                     />
                                     <YAxis />
-                                    <Tooltip />
+                                    <Tooltip
+                                      contentStyle={{
+                                        backgroundColor: isDark
+                                          ? "#1A0B2E"
+                                          : "white",
+                                        border: isDark
+                                          ? "none"
+                                          : "1px solid #E5E7EB",
+                                        color: isDark ? "white" : "black",
+                                      }}
+                                    />
                                     <Line
                                       type="monotone"
                                       dataKey="value"

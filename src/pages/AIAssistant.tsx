@@ -86,8 +86,9 @@ export default function AIAssistant() {
 
     // WebSocket call
     const socket = new WebSocket(
-      "wss://nyx-ai-api.test.nyx.today/nyx-ai-chatbot-agents/chat/2156545051397647"
+      "wss://nyx-ai-api.dev.nyx.today/nyx-ai-chatbot-agents/chat/2156545051397647"
     );
+    
 
     // Payload to send
     const data = {
